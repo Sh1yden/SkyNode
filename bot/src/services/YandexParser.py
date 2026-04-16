@@ -284,6 +284,33 @@ async def yan_get_weather_hours(
         _lg.error(f"Internal error: {e}")
 
 
+async def yan_get_weather_5d(
+    locale: TranslatorRunner | None,
+    city: str | None = None,
+    latitude: str | float | None = None,
+    longitude: str | float | None = None,
+):
+    """
+    Returns:
+    [
+        {"date": 18, "temp_day": 17, "temp_night": 8, "weather_code": "облачно"},
+        {"date": 19, "temp_day": 18, "temp_night": 9, "weather_code": "облачно"},
+        {"date": 20, "temp_day": 19, "temp_night": 10, "weather_code": "облачно"},
+        {"date": 21, "temp_day": 20, "temp_night": 11, "weather_code": "облачно"},
+        {"date": 22, "temp_day": 21, "temp_night": 12, "weather_code": "облачно"},
+    ]
+    """
+
+    res = [
+        {"date": 18, "temp_day": 17, "temp_night": 8, "weather_code": "облачно"},
+        {"date": 19, "temp_day": 18, "temp_night": 9, "weather_code": "облачно"},
+        {"date": 20, "temp_day": 19, "temp_night": 10, "weather_code": "облачно"},
+        {"date": 21, "temp_day": 20, "temp_night": 11, "weather_code": "облачно"},
+        {"date": 22, "temp_day": 21, "temp_night": 12, "weather_code": "облачно"},
+    ]
+    return res
+
+
 if __name__ == "__main__":
 
     async def main():

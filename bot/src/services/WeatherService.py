@@ -38,6 +38,8 @@ from bot.src.services import (
     yan_get_weather_hours,
     opm_get_weather_hours,
     goo_get_weather_hours,
+    wapi_get_weather_hours,
+    vsc_get_weather_hours,
 )
 
 _lg = get_logger()
@@ -213,7 +215,7 @@ async def get_weather_now(
             return None
 
         ymdhm = datetime.now().strftime("%Y%m%d%H")
-        weather_id = f"{city}{ymdhm}"
+        weather_id = f"now_{city}{ymdhm}"
 
         # Redis cache
         if await weather_repo.exists(weather_id):
@@ -344,7 +346,7 @@ async def get_weather_hours(
             return None
 
         ymdhm = datetime.now().strftime("%Y%m%d%H")
-        weather_id = f"{city}{ymdhm}"
+        weather_id = f"hours_{city}{ymdhm}_{hours}"
 
         # Redis cache
         if await weather_repo.exists(weather_id):
@@ -352,58 +354,74 @@ async def get_weather_hours(
             _lg.debug(f"Returning cached hourly forecast for {city}")
             # Возвращаем байты как BytesIO
             return BytesIO(cached_data["weather_hours_msg"])
-
-        # Собрать все данные
-        results = {}
-        # ! Расположены в порядке сортировки
-        # YandexParser
-        results["YandexParser"] = await yan_get_weather_hours(
-            locale=locale,
-            latitude=latitude,
-            longitude=longitude,
-        )
-
-        # OpenMeteo
-        results["OpenMeteo"] = await opm_get_weather_hours(
-            locale=locale,
-            latitude=latitude,
-            longitude=longitude,
-        )
-
-        # Google
-        results["Google"] = await goo_get_weather_hours(
-            locale=locale,
-            latitude=latitude,
-            longitude=longitude,
-        )
-
-        _lg.debug(f"Results is - {results}")
-
-        # Генерировать и отправить изображение
-        image_data = await generate_hourly_forecast_image(results, hours_count=hours)
-
-        # Сохранение в кеш (используем .getvalue() для получения bytes)
-        if image_data:
-            # Удаление старого кеша (как в weather_now)
-            current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
-            prev_hour = current_hour - timedelta(hours=1)
-            prev_ymdhm = prev_hour.strftime("%Y%m%d%H")
-            prev_weather_id = f"hours_{city}{prev_ymdhm}_{hours}"
-
-            if await weather_repo.exists(prev_weather_id):
-                await weather_repo.delete(prev_weather_id)
-                _lg.debug(f"Deleted old hourly cache: {prev_weather_id}")
-
-            # Сохраняем байты картинки
-            await weather_repo.save_from_weather_id(
-                weather_id=weather_id,
-                weather_hours_msg=image_data.getvalue(),
+        else:
+            # Собрать все данные
+            results = {}
+            # ! Расположены в порядке сортировки
+            # YandexParser
+            results["YandexParser"] = await yan_get_weather_hours(
+                locale=locale,
+                latitude=latitude,
+                longitude=longitude,
             )
 
-            # Возвращаем указатель в начало буфера после getvalue() для корректной отправки
-            image_data.seek(0)
+            # OpenMeteo
+            results["OpenMeteo"] = await opm_get_weather_hours(
+                locale=locale,
+                latitude=latitude,
+                longitude=longitude,
+            )
 
-        return image_data
+            # Google
+            results["Google"] = await goo_get_weather_hours(
+                locale=locale,
+                latitude=latitude,
+                longitude=longitude,
+            )
+
+            # WeatherAPI
+            results["WeatherAPI"] = await wapi_get_weather_hours(
+                locale=locale,
+                latitude=latitude,
+                longitude=longitude,
+            )
+
+            # VisualCrossing
+            results["VisualCrossing"] = await vsc_get_weather_hours(
+                locale=locale,
+                latitude=latitude,
+                longitude=longitude,
+            )
+
+            _lg.debug(f"Results is - {results}")
+
+            # Генерировать и отправить изображение
+            image_data = await generate_hourly_forecast_image(
+                results, hours_count=hours
+            )
+
+            # Сохранение в кеш (используем .getvalue() для получения bytes)
+            if image_data:
+                # Удаление старого кеша (как в weather_now)
+                current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
+                prev_hour = current_hour - timedelta(hours=1)
+                prev_ymdhm = prev_hour.strftime("%Y%m%d%H")
+                prev_weather_id = f"hours_{city}{prev_ymdhm}_{hours}"
+
+                if await weather_repo.exists(prev_weather_id):
+                    await weather_repo.delete(prev_weather_id)
+                    _lg.debug(f"Deleted old hourly cache: {prev_weather_id}")
+
+                # Сохраняем байты картинки
+                await weather_repo.save_from_weather_id(
+                    weather_id=weather_id,
+                    weather_hours_msg=image_data.getvalue(),
+                )
+
+                # Возвращаем указатель в начало буфера после getvalue() для корректной отправки
+                image_data.seek(0)
+
+            return image_data
 
     except Exception as e:
         _lg.error(f"Internal error: {e}")

@@ -10,8 +10,8 @@ __all__ = [
 
 from .cord_and_city import get_city_from_cord, get_cord_from_city
 from .OpenMeteo import opm_get_weather_now, opm_get_weather_hours
-from .VisualCrossing import vsc_get_weather_now
-from .WeatherAPI import wapi_get_weather_now
+from .VisualCrossing import vsc_get_weather_now, vsc_get_weather_hours
+from .WeatherAPI import wapi_get_weather_now, wapi_get_weather_hours
 from .YandexParser import yan_get_weather_now, yan_get_weather_hours
 from .Google import goo_get_weather_now, goo_get_weather_hours
 from .WeatherService import (

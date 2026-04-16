@@ -35,6 +35,8 @@ async def wapi_get_weather_now(
         if url is None:
             return None
 
+        url = url.replace("{forecast}", "current")
+
         if city is not None and latitude is None and longitude is None:
             cord = await get_cord_from_city(name_city=city)
 
@@ -123,8 +125,8 @@ async def wapi_get_weather_hours(
     longitude: str | float | None = None,
 ) -> list[dict[str, Any]] | None:
     """
-    Locale = None ONLY for test. \n
-    Needed city or lat and lon.
+    Парсит данные из WeatherAPI и возвращает список словарей,
+    аналогичный формату Google API.
     """
     try:
         url = await get_raw_link_api(api_name="WeatherAPI")
@@ -132,33 +134,65 @@ async def wapi_get_weather_hours(
         if url is None:
             return None
 
+        url = url.replace("{forecast}", "forecast")
+
+        # Определение координат
         if city is not None and latitude is None and longitude is None:
             cord = await get_cord_from_city(name_city=city)
-
-            latitude = cord.get("lat", None)
-            longitude = cord.get("lon", None)
+            latitude = cord.get("lat")
+            longitude = cord.get("lon")
 
             if latitude is None or longitude is None:
-                _lg.warning(
-                    f"Latitude: {latitude}, and Longitude: {longitude}. Error request get_cord_from_city."
-                )
+                _lg.warning(f"Ошибка получения координат для города: {city}")
+                return None
 
         params = {
             "key": settings.WEATHER_API_KEY,
             "q": f"{latitude},{longitude}",
+            "days": 1,
+            "aqi": "no",
+            "alerts": "no",
         }
 
+        # req_data возвращает распарсенный JSON (тот, что ты скинул в промпте)
         req_res = await req_data(url=url, params=params)
 
-        if locale is None:
-            ERROR = "❌ Ошибка: не удалось получить данные от сервиса."  # ! Для теста
-        else:
-            ERROR = (
-                locale.message_service_error_not_found_in_service()
-            )  # ! Для теста без locale, locale=None
+        if not req_res or "forecast" not in req_res:
+            _lg.error("WeatherAPI не вернул прогноз (forecast)")
+            return None
+
+        # Достаем список часов из первого дня прогноза
+        forecast_hours_raw = req_res["forecast"]["forecastday"][0]["hour"]
+
+        hourly_weather_list = []
+
+        for hour in forecast_hours_raw:
+            # Извлекаем время (формат "2026-04-16 13:00" -> "13:00")
+            time_str = hour["time"].split(" ")[1]
+
+            # В WeatherAPI данные всегда в метрической системе, если не указано иное
+            # Но для гибкости можно проверять настройки или просто хардкодить °C
+            temp_value = hour["temp_c"]
+            feels_like_value = hour["feelslike_c"]
+
+            # Код состояния (у WeatherAPI это числовой code, например 1003)
+            # В Google API это строка (тип состояния), можно передать текст или код
+            weather_code = str(hour["condition"]["code"])
+
+            hourly_weather_list.append(
+                {
+                    "time": time_str,
+                    "temp": round(temp_value),
+                    "temp_unit": "°C",
+                    "feels_like": round(feels_like_value),
+                    "weather_code": weather_code,
+                }
+            )
+
+        return hourly_weather_list
 
     except Exception as e:
-        _lg.error(f"Internal error: {e}")
+        _lg.error(f"Internal error in wapi_get_weather_hours: {e}")
 
 
 if __name__ == "__main__":
@@ -182,5 +216,13 @@ if __name__ == "__main__":
         }
 
         _lg.debug(f"All_data is - {all_data}")
+
+        hours = await wapi_get_weather_hours(
+            locale=None,
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+        _lg.debug(f"Hours is - {hours}")
 
     asyncio.run(main())

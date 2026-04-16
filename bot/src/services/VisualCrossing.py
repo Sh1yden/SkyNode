@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from typing import Any
 
 # Для прямого запуска файла
 if __name__ == "__main__":
@@ -119,6 +120,82 @@ async def vsc_get_weather_now(
         _lg.error(f"Internal error: {e}")
 
 
+async def vsc_get_weather_hours(
+    locale: TranslatorRunner | None,
+    city: str | None = None,
+    latitude: str | float | None = None,
+    longitude: str | float | None = None,
+) -> list[dict[str, Any]] | None:
+    """
+    Парсит почасовой прогноз из VisualCrossing и возвращает список словарей,
+    совместимый с форматом Google и WeatherAPI.
+    """
+    try:
+        # Определение координат
+        if city is not None and latitude is None and longitude is None:
+            cord = await get_cord_from_city(name_city=city)
+            latitude = cord.get("lat")
+            longitude = cord.get("lon")
+
+            if latitude is None or longitude is None:
+                _lg.warning(f"Ошибка координат VC для города: {city}")
+                return None
+
+        url = await get_raw_link_api(
+            api_name="VisualCrossing",
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+        if url is None:
+            return None
+
+        # В параметрах обязательно unitGroup=metric для Цельсиев
+        params = {
+            "key": settings.VISUAL_CROSSING_KEY,
+            "unitGroup": "metric",
+            "include": "hours",
+            "contentType": "json",  # VC лучше отдает иерархию в json, чем в flatjson для часов
+        }
+
+        req_res = await req_data(url=url, params=params)
+
+        if not req_res or "days" not in req_res:
+            _lg.error("VisualCrossing не вернул данные (days)")
+            return None
+
+        # Берем первый день (сегодня) и его массив часов
+        forecast_hours_raw = req_res["days"][0]["hours"]
+
+        hourly_weather_list = []
+
+        for hour in forecast_hours_raw:
+            # VC отдает время как "13:00:00", обрезаем до "13:00"
+            time_str = hour["datetime"][:5]
+
+            temp_value = hour["temp"]
+            feels_like_value = hour["feelslike"]
+
+            # У VC нет числовых кодов как у WeatherAPI, используем поле 'icon' или 'conditions'
+            # Для унификации возвращаем icon как weather_code
+            weather_code = hour.get("icon", "unknown")
+
+            hourly_weather_list.append(
+                {
+                    "time": time_str,
+                    "temp": round(temp_value),
+                    "temp_unit": "°C",
+                    "feels_like": round(feels_like_value),
+                    "weather_code": weather_code,
+                }
+            )
+
+        return hourly_weather_list
+
+    except Exception as e:
+        _lg.error(f"Internal error in vsc_get_weather_hours: {e}")
+
+
 if __name__ == "__main__":
 
     async def main():
@@ -140,5 +217,13 @@ if __name__ == "__main__":
         }
 
         _lg.debug(f"All_data is - {all_data}")
+
+        hours = await vsc_get_weather_hours(
+            locale=None,
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+        _lg.debug(f"Hours is - {hours}")
 
     asyncio.run(main())

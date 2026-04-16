@@ -23,7 +23,7 @@ async def get_raw_link_api(
     srv_and_links: dict[str, str] = {
         "OpenMeteo": "https://api.open-meteo.com/v1/forecast?",
         "VisualCrossing": "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{lat}%2C%20{lon}?",
-        "WeatherAPI": "https://api.weatherapi.com/v1/current.json?",
+        "WeatherAPI": "https://api.weatherapi.com/v1/{forecast}.json?",
         "YandexParser": "https://yandex.ru/pogoda/{lang}?",
         "Nominatim": "https://nominatim.openstreetmap.org/reverse",
         "Geocoding": "https://geocoding-api.open-meteo.com/v1/search?",
