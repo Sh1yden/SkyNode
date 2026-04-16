@@ -1,0 +1,58 @@
+# ! Верная команда для сборки в докере: docker compose -f 'docker-compose.yml' up -d --build
+services:
+  bot:
+    container_name: bot
+    build: .
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - PROJECT_STATUS=product
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_PORT=6432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env.prod
+    ports:
+      - "8080:8080"
+
+  postgresql:
+    container_name: postgresql
+    image: postgres:18-alpine
+    restart: unless-stopped
+    command: -p 6432
+    env_file:
+      - .env.prod
+    ports:
+      - "6432:6432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 6432"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    container_name: redis
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_data:
