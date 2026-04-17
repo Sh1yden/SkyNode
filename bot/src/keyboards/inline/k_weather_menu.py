@@ -37,24 +37,24 @@ async def get_btns_weather_menu(
     )
 
     # 📆 На 5 дней
-    builder.row(
-        InlineKeyboardButton(
-            text=locale.button_weather_menu_5d(),
-            callback_data=WeatherCallback(action="weather_5d").pack(),
-        ),
-    )
+    # builder.row(
+    #     InlineKeyboardButton(
+    #         text=locale.button_weather_menu_5d(),
+    #         callback_data=WeatherCallback(action="weather_5d").pack(),
+    #     ),
+    # )
 
     # 🌦 Осадки     🧭 Ветер/давление
-    builder.row(
-        InlineKeyboardButton(
-            text=locale.button_weather_menu_rain(),
-            callback_data=WeatherCallback(action="weather_rain").pack(),
-        ),
-        InlineKeyboardButton(
-            text=locale.button_weather_menu_wind_pressure(),
-            callback_data=WeatherCallback(action="weather_wind_pressure").pack(),
-        ),
-    )
+    # builder.row(
+    #     InlineKeyboardButton(
+    #         text=locale.button_weather_menu_rain(),
+    #         callback_data=WeatherCallback(action="weather_rain").pack(),
+    #     ),
+    #     InlineKeyboardButton(
+    #         text=locale.button_weather_menu_wind_pressure(),
+    #         callback_data=WeatherCallback(action="weather_wind_pressure").pack(),
+    #     ),
+    # )
 
     # 📍 Локация:
     user_data = await user_repo.get_by_id(user_id)
@@ -76,10 +76,10 @@ async def get_btns_weather_menu(
             text=locale.button_weather_menu_settings(),
             callback_data=WeatherCallback(action="weather_settings").pack(),
         ),
-        InlineKeyboardButton(
-            text=locale.button_weather_menu_subscription(),
-            callback_data=WeatherCallback(action="weather_subscription").pack(),
-        ),
+        # InlineKeyboardButton(
+        #     text=locale.button_weather_menu_subscription(),
+        #     callback_data=WeatherCallback(action="weather_subscription").pack(),
+        # ),
     )
 
     # 🔙 Назад

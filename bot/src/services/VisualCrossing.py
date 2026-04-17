@@ -131,7 +131,6 @@ async def vsc_get_weather_hours(
     совместимый с форматом Google и WeatherAPI.
     """
     try:
-        # Определение координат
         if city is not None and latitude is None and longitude is None:
             cord = await get_cord_from_city(name_city=city)
             latitude = cord.get("lat")
@@ -150,12 +149,11 @@ async def vsc_get_weather_hours(
         if url is None:
             return None
 
-        # В параметрах обязательно unitGroup=metric для Цельсиев
         params = {
             "key": settings.VISUAL_CROSSING_KEY,
             "unitGroup": "metric",
             "include": "hours",
-            "contentType": "json",  # VC лучше отдает иерархию в json, чем в flatjson для часов
+            "contentType": "json",
         }
 
         req_res = await req_data(url=url, params=params)
@@ -176,7 +174,6 @@ async def vsc_get_weather_hours(
             temp_value = hour["temp"]
             feels_like_value = hour["feelslike"]
 
-            # У VC нет числовых кодов как у WeatherAPI, используем поле 'icon' или 'conditions'
             # Для унификации возвращаем icon как weather_code
             weather_code = hour.get("icon", "unknown")
 

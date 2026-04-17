@@ -10,7 +10,6 @@ def get_btns_start(locale: TranslatorRunner) -> InlineKeyboardMarkup:
 
     builder = InlineKeyboardBuilder()
 
-    # добавить еще кнопок для других функций
     builder.row(
         InlineKeyboardButton(
             text=locale.button_start_weather(),

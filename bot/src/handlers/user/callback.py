@@ -24,6 +24,7 @@ from bot.src.keyboards import (
     get_btns_exit_to_weather_menu,
     get_btns_weather_hours,
     get_btns_exit_to_hours_menu,
+    get_btns_settings,
 )
 
 # cord
@@ -31,6 +32,7 @@ from bot.src.services import get_city_from_cord, get_cord_from_city
 
 # weather
 from bot.src.services import get_weather_now, get_weather_hours
+from bot.src.services import get_weather_astro
 
 from bot.src.states import LocationState
 from bot.src.utils import clear_state
@@ -173,15 +175,34 @@ async def weather_callback_handler(
                     reply_markup=get_btns_exit_to_weather_menu(locale),
                 )
 
+        # 🔅 День / Ночь
+        elif callback_data.action == "weather_day_night":
+            if await user_repo.has_location(user.id):
+                location = await user_repo.get_by_id(user.id)
+                latitude = location.get("latitude", None)
+                longitude = location.get("longitude", None)
+                city = location.get("city")
+
+                astro_text = await get_weather_astro(
+                    locale=locale,
+                    weather_repo=weather_repo,
+                    city=city,
+                    latitude=latitude,
+                    longitude=longitude,
+                )
+
+                await message.edit_text(
+                    text=astro_text,
+                    reply_markup=get_btns_exit_to_weather_menu(locale),
+                )
+            else:
+                await message.edit_text(
+                    text=locale.message_location_not_posted(),
+                    reply_markup=get_btns_exit_to_weather_menu(locale),
+                )
+
         # 📆 На 5 дней
         elif callback_data.action == "weather_5d":
-            await message.edit_text(
-                text=locale.message_service_in_development(),
-                reply_markup=get_btns_exit_to_weather_menu(locale),
-            )
-
-        # 🌅 Утро / 🌇 Вечер
-        elif callback_data.action == "weather_day_night":
             await message.edit_text(
                 text=locale.message_service_in_development(),
                 reply_markup=get_btns_exit_to_weather_menu(locale),
@@ -196,20 +217,6 @@ async def weather_callback_handler(
 
         # 🧭 Ветер/давление
         elif callback_data.action == "weather_wind_pressure":
-            await message.edit_text(
-                text=locale.message_service_in_development(),
-                reply_markup=get_btns_exit_to_weather_menu(locale),
-            )
-
-        # ⚙️ Настроить
-        if callback_data.action == "weather_settings":
-            await message.edit_text(
-                text=locale.message_service_in_development(),
-                reply_markup=get_btns_exit_to_weather_menu(locale),
-            )
-
-        # 🔔 Подписка
-        elif callback_data.action == "weather_subscription":
             await message.edit_text(
                 text=locale.message_service_in_development(),
                 reply_markup=get_btns_exit_to_weather_menu(locale),
@@ -237,6 +244,25 @@ async def weather_callback_handler(
                     text=locale.message_device_select(),
                     reply_markup=get_btns_device(locale),
                 )
+        elif callback_data.action == "change_weather_location":
+            await message.edit_text(
+                text=locale.message_device_select(),
+                reply_markup=get_btns_device(locale),
+            )
+
+        # ⚙️ Настроить
+        if callback_data.action == "weather_settings":
+            await message.edit_text(
+                text=locale.message_settings_menu(),
+                reply_markup=get_btns_settings(locale),
+            )
+
+        # 🔔 Подписка
+        elif callback_data.action == "weather_subscription":
+            await message.edit_text(
+                text=locale.message_service_in_development(),
+                reply_markup=get_btns_exit_to_weather_menu(locale),
+            )
 
         # 🔙 Назад
         elif callback_data.action == "weather_get_back":
@@ -341,7 +367,7 @@ async def handle_location_phone(
             )
             await message.answer(
                 text=msg_text,
-                reply_markup=ReplyKeyboardRemove(),
+                reply_markup=get_btns_exit_to_weather_menu(locale),
             )
         else:
             await message.answer(text=locale.message_location_save_error())
@@ -374,7 +400,10 @@ async def handle_location_pc(
         cancel_button = locale.button_location_cancel()
         if location_pc == cancel_button or location_pc == "отмена":
             await clear_state(state)
-            await message.answer(text=locale.message_location_cancel())
+            await message.answer(
+                text=locale.message_location_cancel(),
+                reply_markup=get_btns_exit_to_weather_menu(locale),
+            )
             return
 
         # Get coordinates from city name
@@ -415,7 +444,11 @@ async def handle_location_pc(
                 reply_markup=get_btns_exit_to_weather_menu(locale),
             )
         else:
-            await message.answer(text=locale.message_location_save_error())
+            await message.answer(
+                text=locale.message_location_save_error(),
+                show_alert=True,
+                reply_markup=get_btns_exit_to_weather_menu(locale),
+            )
 
         await clear_state(state)
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 import sys
 from pathlib import Path
 from typing import Any
@@ -62,7 +63,6 @@ async def wapi_get_weather_now(
                 locale.message_service_error_not_found_in_service()
             )  # ! Для теста без locale, locale=None
 
-        location_values = req_res.get("location", ERROR)
         current_values = req_res.get("current", ERROR)
         current_condition = current_values.get("condition", ERROR)
 
@@ -125,8 +125,8 @@ async def wapi_get_weather_hours(
     longitude: str | float | None = None,
 ) -> list[dict[str, Any]] | None:
     """
-    Парсит данные из WeatherAPI и возвращает список словарей,
-    аналогичный формату Google API.
+    Locale = None ONLY for test. \n
+    Needed city or lat and lon.
     """
     try:
         url = await get_raw_link_api(api_name="WeatherAPI")
@@ -154,7 +154,6 @@ async def wapi_get_weather_hours(
             "alerts": "no",
         }
 
-        # req_data возвращает распарсенный JSON (тот, что ты скинул в промпте)
         req_res = await req_data(url=url, params=params)
 
         if not req_res or "forecast" not in req_res:
@@ -170,13 +169,10 @@ async def wapi_get_weather_hours(
             # Извлекаем время (формат "2026-04-16 13:00" -> "13:00")
             time_str = hour["time"].split(" ")[1]
 
-            # В WeatherAPI данные всегда в метрической системе, если не указано иное
-            # Но для гибкости можно проверять настройки или просто хардкодить °C
             temp_value = hour["temp_c"]
             feels_like_value = hour["feelslike_c"]
 
             # Код состояния (у WeatherAPI это числовой code, например 1003)
-            # В Google API это строка (тип состояния), можно передать текст или код
             weather_code = str(hour["condition"]["code"])
 
             hourly_weather_list.append(
@@ -190,6 +186,92 @@ async def wapi_get_weather_hours(
             )
 
         return hourly_weather_list
+
+    except Exception as e:
+        _lg.error(f"Internal error in wapi_get_weather_hours: {e}")
+
+
+async def wapi_get_weather_astro(
+    locale: TranslatorRunner | None,
+    city: str | None = None,
+    latitude: str | float | None = None,
+    longitude: str | float | None = None,
+):
+    """
+    Locale = None ONLY for test. \n
+    Needed city or lat and lon.
+    """
+    try:
+        url = await get_raw_link_api(api_name="WeatherAPI")
+
+        if url is None:
+            return None
+
+        url = url.replace("{forecast}", "astronomy")
+
+        if city is not None and latitude is None and longitude is None:
+            cord = await get_cord_from_city(name_city=city)
+
+            latitude = cord.get("lat", None)
+            longitude = cord.get("lon", None)
+
+            if latitude is None or longitude is None:
+                _lg.warning(
+                    f"Latitude: {latitude}, and Longitude: {longitude}. Error request get_cord_from_city."
+                )
+
+        params = {
+            "key": settings.WEATHER_API_KEY,
+            "q": f"{latitude},{longitude}",
+            "dt": f"{datetime.now().strftime('%Y-%m-%d')}",
+        }
+
+        req_res = await req_data(url=url, params=params)
+
+        if not req_res or "astronomy" not in req_res:
+            return None
+
+        astro = req_res["astronomy"]["astro"]
+
+        # Вспомогательная функция для конвертации "05:35 AM" -> "05:35"
+        def to_24h(t_str):
+            try:
+                return datetime.strptime(t_str, "%I:%M %p").strftime("%H:%M")
+            except Exception:
+                return t_str
+
+        if locale is None:
+            ERROR = "❌ Ошибка: не удалось получить данные от сервиса."  # ! Для теста
+        else:
+            ERROR = (
+                locale.message_service_error_not_found_in_service()
+            )  # ! Для теста без locale, locale=None
+
+        # Считаем долготу дня
+        # Превращаем в объекты времени для вычитания
+        fmt = "%I:%M %p"
+        sunrise_dt = datetime.strptime(astro["sunrise"], fmt)
+        sunset_dt = datetime.strptime(astro["sunset"], fmt)
+        duration = sunset_dt - sunrise_dt
+        hours, remainder = divmod(duration.seconds, 3600)
+        minutes = remainder // 60
+        day_length = f"{hours}ч {minutes}м"
+
+        # Формируем итоговый словарь
+        result = {
+            "city": city or req_res["location"]["name"],
+            "sunrise": to_24h(astro["sunrise"]),
+            "sunset": to_24h(astro["sunset"]),
+            "day_length": day_length,
+            "moon_phase": astro["moon_phase"],  # Названия фаз переведем в шаблоне
+            "moon_illumination": astro["moon_illumination"],
+            "moonrise": to_24h(astro["moonrise"]),
+            "moonset": to_24h(astro["moonset"]),
+            "is_sun_up": astro["is_sun_up"],
+            # UV-индекс и видимость обычно приходят из основного прогноза (forecast),
+        }
+
+        return result
 
     except Exception as e:
         _lg.error(f"Internal error in wapi_get_weather_hours: {e}")
@@ -224,5 +306,13 @@ if __name__ == "__main__":
         )
 
         _lg.debug(f"Hours is - {hours}")
+
+        astro = await wapi_get_weather_astro(
+            locale=None,
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+        _lg.debug(f"Astro is - {astro}")
 
     asyncio.run(main())

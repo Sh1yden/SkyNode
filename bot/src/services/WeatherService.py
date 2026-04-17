@@ -42,6 +42,8 @@ from bot.src.services import (
     vsc_get_weather_hours,
 )
 
+from bot.src.services import wapi_get_weather_astro
+
 _lg = get_logger()
 
 # TODO когда то сделать переключение с м/с на км/ч и тд
@@ -437,10 +439,98 @@ async def get_weather_5d() -> None:
 
 
 @staticmethod
-async def get_weather_day_night() -> None:
-    """Get day/night weather - NOT IMPLEMENTED"""
+async def get_weather_astro(
+    locale: TranslatorRunner,
+    weather_repo,
+    city: str | None = None,
+    latitude: str | float | None = None,
+    longitude: str | float | None = None,
+    usr_loc: dict[str, str] | None = None,
+) -> str | None:
+    """Get day/night weather"""
     try:
-        pass
+        if usr_loc is not None:
+            latitude = usr_loc.get("latitude", None)
+            longitude = usr_loc.get("longitude", None)
+
+        if city is not None and latitude is None and longitude is None:
+            cord = await get_cord_from_city(name_city=city)
+
+            latitude = cord.get("lat", None)
+            longitude = cord.get("lon", None)
+
+        if city is None and latitude and longitude:
+            city = await get_city_from_cord(latitude=latitude, longitude=longitude)
+
+        if latitude is None or longitude is None:
+            _lg.error(f"Latitude: {latitude}, and Longitude: {longitude}. Error!")
+            return None
+
+        ymdhm = datetime.now().strftime("%Y%m%d%H")
+        weather_id = f"astro_{city}{ymdhm}"
+
+        # Redis cache
+        if await weather_repo.exists(weather_id):
+            weather_now_msg = await weather_repo.get_by_id(weather_id)
+            return weather_now_msg["weather_astro_msg"]
+
+        else:
+            results = {}
+            # ! Расположены в порядке сортировки
+            # 1. Получаем специфичные данные астрономии
+            results["WeatherAPI"] = await wapi_get_weather_astro(
+                locale=locale, latitude=latitude, longitude=longitude, city=city
+            )
+
+            _lg.debug(f"Astro Results is - {results}")
+
+            astro = results.get("WeatherAPI")
+            if not astro:
+                return locale.message_service_error_not_found_in_service()
+
+            weather_now_data = await wapi_get_weather_now(
+                locale=locale, latitude=latitude, longitude=longitude
+            )
+
+            moon_phases = {
+                "New Moon": "Новолуние",
+                "Waxing Crescent": "Растущий серп",
+                "First Quarter": "Первая четверть",
+                "Waxing Gibbous": "Растущая луна",
+                "Full Moon": "Полнолуние",
+                "Waning Gibbous": "Убывающая луна",
+                "Last Quarter": "Последняя четверть",
+                "Waning Crescent": "Убывающий серп",
+            }
+
+            phase_rus = moon_phases.get(astro["moon_phase"], astro["moon_phase"])
+            header_emoji = (
+                locale.emoji_weather_now_day()
+                if astro["is_sun_up"]
+                else locale.emoji_weather_now_night()
+            )
+
+            weather_astro_msg = (
+                f"{header_emoji} Астрономия: {city}\n"
+                f"День:\n"
+                f"  ☀️ Восход: {astro['sunrise']}\n"
+                f"  🌇 Закат: {astro['sunset']}\n"
+                f"  ⏱ Долгота: {astro['day_length']}\n"
+                f"Ночь:\n"
+                f"  🌙 Фаза: {phase_rus} ({astro['moon_illumination']}%)\n"
+                f"  🌌 Восход луны: {astro['moonrise']}\n"
+                f"  🌌 Закат луны: {astro['moonset']}\n"
+                f"  🌡 Температура сейчас: {weather_now_data.get('temp')}°C"
+            )
+
+            # Redis cache
+            await weather_repo.save_from_weather_id(
+                weather_id=weather_id,
+                weather_astro_msg=weather_astro_msg,
+            )
+
+            return weather_astro_msg
+
     except Exception as e:
         _lg.error(f"Internal error: {e}")
 

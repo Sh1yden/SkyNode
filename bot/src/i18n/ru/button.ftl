@@ -1,6 +1,10 @@
 # ? Start Btns
 button_start_weather = ⛅️ Погода
 
+# ? Settings Btns
+message_settings_change_lang = 🌐 Язык
+message_settings_location = 📍 Изменить геопозицию
+
 # ? WEATHER Btns
 
 # ? Weather MENU Btns

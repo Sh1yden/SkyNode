@@ -26,7 +26,7 @@ class WeatherAllInfo(Base):
 
     weather_now_msg: Mapped[Optional[str]] = mapped_column(String)
     weather_hours_msg: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
-    weather_day_night_msg: Mapped[Optional[str]] = mapped_column(String)
+    weather_astro_msg: Mapped[Optional[str]] = mapped_column(String)
     weather_5d_msg: Mapped[Optional[str]] = mapped_column(String)
     weather_rain_msg: Mapped[Optional[str]] = mapped_column(String)
     weather_wind_pressure_msg: Mapped[Optional[str]] = mapped_column(String)

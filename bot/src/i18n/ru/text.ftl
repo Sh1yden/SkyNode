@@ -37,6 +37,10 @@ message_help =
     • Меню погоды /weatherMenu.
 
 
+# ? Settings Msgs
+message_settings_menu = 📚 Меню настроек.
+
+
 # ? WEATHER Msgs
 # ? Weather MENU Msgs
 message_weather_menu =
