@@ -1,8 +1,8 @@
-# ! Верная команда для сборки в докере: docker compose -f 'docker-compose.yml' up -d --build
 services:
   bot:
     container_name: bot
     build: .
+    restart: always
     depends_on:
       postgresql:
         condition: service_healthy
@@ -14,14 +14,20 @@ services:
       - POSTGRES_PORT=6432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - UV_SYSTEM_PYTHON=1
     env_file:
       - .env.prod
     ports:
       - "8080:8080"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    networks:
+      - bot_network
 
   postgresql:
     container_name: postgresql
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     restart: unless-stopped
     command: -p 6432
     env_file:
@@ -36,6 +42,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - bot_network
 
   redis:
     container_name: redis
@@ -52,7 +60,15 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+    networks:
+      - bot_network
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  bot_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
