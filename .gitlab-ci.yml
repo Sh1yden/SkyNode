@@ -1,0 +1,101 @@
+stages:
+  - validate
+  - test
+  - build
+  - deploy
+
+variables:
+  SERVICE_NAME: "skynode"
+  KUBE_NAMESPACE: "skynode"
+  BASE_WEBHOOK_HOST: "skynode.prod.birdegop.ru"
+  BASE_WEBHOOK_URL: "https://skynode.prod.birdegop.ru"
+  DOCKER_VERSION: "24.0.5"
+  DOCKER_REGISTRY_HOST: "registry.birdegop.ru"
+  IMAGE_REPO: "registry.birdegop.ru/docker/images/skynode"
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+
+validate:
+  stage: validate
+  image: alpine:3.20
+  script:
+    - test -n "$KUBE_CONFIG"
+    - test -n "$CI_DEPLOY_USER"
+    - test -n "$CI_DEPLOY_ACCESS_TOKEN"
+    - test -n "$TELEGRAM_BOT_TOKEN"
+    - test -n "$TELEGRAM_WEBHOOK_SECRET"
+    - test -n "$POSTGRES_PASSWORD"
+    - test -n "$VISUAL_CROSSING_KEY"
+    - test -n "$WEATHER_API_KEY"
+    - test -n "$OPEN_WEATHER_MAP_API_KEY"
+    - test -n "$GOOGLE_KEY"
+
+test:
+  stage: test
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+  variables:
+    PROJECT_STATUS: "development"
+    TELEGRAM_BOT_TOKEN: "test-token"
+    TELEGRAM_WEBHOOK_SECRET: "test-secret"
+    TUNA_TOKEN: ""
+    TUNA_API_TOKEN: ""
+    VISUAL_CROSSING_KEY: "test-key"
+    WEATHER_API_KEY: "test-key"
+    OPEN_WEATHER_MAP_API_KEY: "test-key"
+    GOOGLE_KEY: "test-key"
+  script:
+    - uv sync --frozen
+    - uv run pytest bot/src/tests/unit
+
+build image:
+  stage: build
+  image: docker:${DOCKER_VERSION}
+  services:
+    - name: docker:${DOCKER_VERSION}-dind
+      variables:
+        HEALTHCHECK_TCP_PORT: "2375"
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - echo "$CI_DEPLOY_ACCESS_TOKEN" | docker login "$DOCKER_REGISTRY_HOST" -u "$CI_DEPLOY_USER" --password-stdin
+    - docker build --no-cache -t "${IMAGE_REPO}:${IMAGE_TAG}" .
+    - docker push "${IMAGE_REPO}:${IMAGE_TAG}"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ] || [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag "${IMAGE_REPO}:${IMAGE_TAG}" "${IMAGE_REPO}:latest"
+        docker push "${IMAGE_REPO}:latest"
+      fi
+
+deploy production:
+  stage: deploy
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache bash gettext kubectl
+    - |
+      if [ -f "$KUBE_CONFIG" ]; then
+        cp "$KUBE_CONFIG" /tmp/config
+      else
+        echo "$KUBE_CONFIG" | base64 -d > /tmp/config
+      fi
+    - export KUBECONFIG=/tmp/config
+    - chmod 600 /tmp/config
+  script:
+    - |
+      kubectl -n "$KUBE_NAMESPACE" create secret generic "${SERVICE_NAME}-runtime" \
+        --from-literal=TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
+        --from-literal=TELEGRAM_WEBHOOK_SECRET="$TELEGRAM_WEBHOOK_SECRET" \
+        --from-literal=POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+        --from-literal=VISUAL_CROSSING_KEY="$VISUAL_CROSSING_KEY" \
+        --from-literal=WEATHER_API_KEY="$WEATHER_API_KEY" \
+        --from-literal=OPEN_WEATHER_MAP_API_KEY="$OPEN_WEATHER_MAP_API_KEY" \
+        --from-literal=GOOGLE_KEY="$GOOGLE_KEY" \
+        --dry-run=client -o yaml | kubectl apply -f -
+    - envsubst < deploy/k8s/deployment.yaml | kubectl apply -f -
+    - envsubst < deploy/k8s/service.yaml | kubectl apply -f -
+    - envsubst < deploy/k8s/ingress.yaml | kubectl apply -f -
+    - kubectl -n "$KUBE_NAMESPACE" rollout status deployment/"$SERVICE_NAME" --timeout=300s
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+    - if: '$CI_COMMIT_TAG'
+      when: manual

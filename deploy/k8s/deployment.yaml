@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${SERVICE_NAME}
+  namespace: ${KUBE_NAMESPACE}
+  labels:
+    app: ${SERVICE_NAME}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: ${SERVICE_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${SERVICE_NAME}
+    spec:
+      containers:
+        - name: ${SERVICE_NAME}
+          image: ${IMAGE_REPO}:${IMAGE_TAG}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: PROJECT_STATUS
+              value: "product"
+            - name: WEB_SERVER_HOST
+              value: "0.0.0.0"
+            - name: WEB_SERVER_PORT
+              value: "8080"
+            - name: BASE_WEBHOOK_URL
+              value: "${BASE_WEBHOOK_URL}"
+            - name: POSTGRES_HOST
+              value: "postgres.data.svc.cluster.local"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: "skynode"
+            - name: POSTGRES_USER
+              value: "skynode"
+            - name: POSTGRES_ASYNCPG
+              value: "asyncpg"
+            - name: REDIS_HOST
+              value: "valkey.skynode.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+          envFrom:
+            - secretRef:
+                name: ${SERVICE_NAME}-runtime
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3

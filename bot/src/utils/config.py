@@ -21,8 +21,18 @@ class SettingsSchema(BaseSettings):
     TELEGRAM_WEBHOOK_SECRET: str = Field(..., description="Секретный ключ для webhook")
 
     # TUNA TUNNELS
-    TUNA_TOKEN: str = Field(..., description="Tuna tunnel токен")
-    TUNA_API_TOKEN: str = Field(..., description="Tuna API токен")
+    TUNA_TOKEN: str = Field(default="", description="Tuna tunnel токен")
+    TUNA_API_TOKEN: str = Field(default="", description="Tuna API токен")
+
+    # RUNTIME
+    WEB_SERVER_HOST: str = Field(
+        default="0.0.0.0", description="Webhook server bind host"
+    )
+    WEB_SERVER_PORT: str = Field(default="8080", description="Webhook server port")
+    BASE_WEBHOOK_URL: str = Field(
+        default="",
+        description="Public base URL for Telegram webhook. If empty, Tuna is used.",
+    )
 
     # SQLITE (Development only)
     SQLITE_DB_URL: str = Field(
@@ -104,16 +114,11 @@ def get_settings() -> SettingsSchema:
     env_file = ".env.prod" if project_status == "product" else ".env.dev"
     env_path = Path(env_file)
 
-    if not env_path.exists():
-        raise FileNotFoundError(
-            f"Файл окружения '{env_file}' не найден. "
-            f"PROJECT_STATUS={project_status}\n"
-            f"Создай файл {env_file} на основе .env.example"
-        )
-
     # Временно меняем env_file в model_config
     original_config = SettingsSchema.model_config.copy()
-    SettingsSchema.model_config["env_file"] = str(env_path)
+    SettingsSchema.model_config["env_file"] = (
+        str(env_path) if env_path.exists() else None
+    )
 
     try:
         settings_instance = SettingsSchema()  # type: ignore

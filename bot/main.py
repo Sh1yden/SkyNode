@@ -30,18 +30,14 @@ _lg = get_logger(__name__)
 TOKEN = settings.TELEGRAM_BOT_TOKEN
 
 # Webserver settings
-# For Docker, use localhost to bind to all interfaces
-WEB_SERVER_HOST = "localhost"
-WEB_SERVER_PORT = 8080
+WEB_SERVER_HOST = settings.WEB_SERVER_HOST
+WEB_SERVER_PORT = int(settings.WEB_SERVER_PORT)
 
 # Telegram webhook settings:
 # Path to webhook route, on which Telegram will send requests
 WEBHOOK_PATH = "/webhook"
 # Secret key to validate requests from Telegram (optional)
 WEBHOOK_SECRET = settings.TELEGRAM_WEBHOOK_SECRET
-
-# Redirect for global net:
-BASE_WEBHOOK_URL, tuna_process = start_tuna(WEB_SERVER_PORT)
 
 
 def create_translator_hub() -> TranslatorHub | None:
@@ -110,10 +106,10 @@ def create_dispatcher(repos) -> Dispatcher | None:
         _lg.critical(f"Internal error: {e}.")
 
 
-async def on_startup_set_webhook(bot: Bot) -> None:
+async def on_startup_set_webhook(bot: Bot, base_webhook_url: str) -> None:
     """Set webhook on startup"""
     try:
-        webhook_url = f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}"
+        webhook_url = f"{base_webhook_url}{WEBHOOK_PATH}"
         _lg.debug(f"Setting webhook to: {webhook_url}")
 
         await bot.delete_webhook(drop_pending_updates=True)
@@ -133,6 +129,27 @@ async def on_startup_set_webhook(bot: Bot) -> None:
 
     except Exception as e:
         _lg.critical(f"Failed to set webhook: {e}")
+        raise
+
+
+def resolve_webhook_base_url() -> tuple[str, object | None]:
+    """Use explicit webhook URL in cluster, Tuna locally."""
+    base_webhook_url = settings.BASE_WEBHOOK_URL.strip()
+    if base_webhook_url:
+        return base_webhook_url.rstrip("/"), None
+
+    return start_tuna(WEB_SERVER_PORT)
+
+
+async def live_handler(_: web.Request) -> web.Response:
+    return web.json_response({"status": "live"})
+
+
+async def ready_handler(request: web.Request) -> web.Response:
+    if request.app.get("is_ready", False):
+        return web.json_response({"status": "ready"})
+
+    return web.json_response({"status": "starting"}, status=503)
 
 
 def create_bot() -> Bot | None:
@@ -167,15 +184,20 @@ async def run_bot() -> None:
     repos = None
     engine = None
     runner = None
+    bot = None
+    tuna_process = None
 
     try:
         _lg.debug("Start main func.")
         _lg.info(f"PROJECT STATUS is - {settings.PROJECT_STATUS}")
+        _lg.info(f"Webhook bind target: {WEB_SERVER_HOST}:{WEB_SERVER_PORT}")
 
         bot = create_bot()
         if bot is None:
             _lg.critical("Failed to create a bot. Exiting.")
             return
+
+        base_webhook_url, tuna_process = resolve_webhook_base_url()
 
         engine, SessionLocal = await init_database()  # type: ignore
 
@@ -187,11 +209,11 @@ async def run_bot() -> None:
             _lg.critical("Failed to create a dispatcher. Exiting.")
             return
 
-        # Set webhook
-        await on_startup_set_webhook(bot)
-
         # Setup web application
         app = web.Application()
+        app["is_ready"] = False
+        app.router.add_get("/live", live_handler)
+        app.router.add_get("/ready", ready_handler)
 
         webhook_handler = SimpleRequestHandler(
             dispatcher=dp,
@@ -210,6 +232,10 @@ async def run_bot() -> None:
 
         site = web.TCPSite(runner, WEB_SERVER_HOST, WEB_SERVER_PORT)
         await site.start()
+
+        # Set webhook after the server is accepting traffic.
+        await on_startup_set_webhook(bot, base_webhook_url)
+        app["is_ready"] = True
 
         _lg.info(f"Web server started on {WEB_SERVER_HOST}:{WEB_SERVER_PORT}")
         _lg.info("Bot is running. Press Ctrl+C to stop.")
