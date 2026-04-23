@@ -73,6 +73,36 @@ deploy production:
     - chmod 600 /tmp/config
   script:
     - |
+      python - <<'PY'
+      import os
+      from pathlib import Path
+
+      files = [
+          Path("deploy/k8s/deployment.yaml"),
+          Path("deploy/k8s/service.yaml"),
+          Path("deploy/k8s/ingress.yaml"),
+      ]
+
+      out_dir = Path(".rendered-k8s")
+      out_dir.mkdir(exist_ok=True)
+
+      keys = [
+          "SERVICE_NAME",
+          "KUBE_NAMESPACE",
+          "BASE_WEBHOOK_HOST",
+          "BASE_WEBHOOK_URL",
+          "IMAGE_REPO",
+          "IMAGE_TAG",
+      ]
+
+      env = {key: os.environ[key] for key in keys}
+      for src in files:
+          content = src.read_text()
+          for key, value in env.items():
+              content = content.replace("${" + key + "}", value)
+          (out_dir / src.name).write_text(content)
+      PY
+    - |
       kubectl -n "$KUBE_NAMESPACE" create secret generic "${SERVICE_NAME}-runtime" \
         --from-literal=TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
         --from-literal=TELEGRAM_WEBHOOK_SECRET="$TELEGRAM_WEBHOOK_SECRET" \
@@ -82,9 +112,9 @@ deploy production:
         --from-literal=OPEN_WEATHER_MAP_API_KEY="$OPEN_WEATHER_MAP_API_KEY" \
         --from-literal=GOOGLE_KEY="$GOOGLE_KEY" \
         --dry-run=client -o yaml | kubectl apply -f -
-    - envsubst < deploy/k8s/deployment.yaml | kubectl apply -f -
-    - envsubst < deploy/k8s/service.yaml | kubectl apply -f -
-    - envsubst < deploy/k8s/ingress.yaml | kubectl apply -f -
+    - kubectl apply -f .rendered-k8s/deployment.yaml
+    - kubectl apply -f .rendered-k8s/service.yaml
+    - kubectl apply -f .rendered-k8s/ingress.yaml
     - kubectl -n "$KUBE_NAMESPACE" rollout status deployment/"$SERVICE_NAME" --timeout=300s
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
