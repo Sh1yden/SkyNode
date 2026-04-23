@@ -28,4 +28,4 @@ COPY . .
 
 RUN chmod +x /usr/local/bin/tuna || true
 
-ENTRYPOINT [ "uv", "run", "bot/main.py" ]
+ENTRYPOINT [ "python", "bot/main.py" ]
