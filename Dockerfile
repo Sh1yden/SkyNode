@@ -28,4 +28,4 @@ COPY . .
 
 RUN chmod +x /usr/local/bin/tuna || true
 
-ENTRYPOINT [ "/app/.venv/bin/python", "bot/main.py" ]
+ENTRYPOINT [ "/app/.venv/bin/python", "-m", "bot.main" ]
