@@ -73,35 +73,10 @@ deploy production:
     - chmod 600 /tmp/config
   script:
     - |
-      python - <<'PY'
-      import os
-      from pathlib import Path
-
-      files = [
-          Path("deploy/k8s/deployment.yaml"),
-          Path("deploy/k8s/service.yaml"),
-          Path("deploy/k8s/ingress.yaml"),
-      ]
-
-      out_dir = Path(".rendered-k8s")
-      out_dir.mkdir(exist_ok=True)
-
-      keys = [
-          "SERVICE_NAME",
-          "KUBE_NAMESPACE",
-          "BASE_WEBHOOK_HOST",
-          "BASE_WEBHOOK_URL",
-          "IMAGE_REPO",
-          "IMAGE_TAG",
-      ]
-
-      env = {key: os.environ[key] for key in keys}
-      for src in files:
-          content = src.read_text()
-          for key, value in env.items():
-              content = content.replace("${" + key + "}", value)
-          (out_dir / src.name).write_text(content)
-      PY
+      mkdir -p .rendered-k8s
+      yq '(.. | select(tag == "!!str")) |= envsubst' deploy/k8s/deployment.yaml > .rendered-k8s/deployment.yaml
+      yq '(.. | select(tag == "!!str")) |= envsubst' deploy/k8s/service.yaml > .rendered-k8s/service.yaml
+      yq '(.. | select(tag == "!!str")) |= envsubst' deploy/k8s/ingress.yaml > .rendered-k8s/ingress.yaml
     - |
       kubectl -n "$KUBE_NAMESPACE" create secret generic "${SERVICE_NAME}-runtime" \
         --from-literal=TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
