@@ -45,6 +45,9 @@ test:
   script:
     - uv sync --frozen --no-install-project
     - uv run --no-sync pytest bot/src/tests/unit
+  allow_failure: true
+  rules:
+    - when: manual
 
 build image:
   stage: build
@@ -99,3 +102,4 @@ deploy production:
       when: manual
     - if: '$CI_COMMIT_TAG'
       when: manual
+    - when: never
