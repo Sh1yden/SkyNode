@@ -37,7 +37,7 @@
 ### Изменено
 
 - Отдельная вики для SkyNode. [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Sh1yden/SkyNode)
-- Спрятаны нерабочие кнопкию в меню погоды.
+- Спрятаны нерабочие кнопки в меню погоды.
 
 ## [0.4.2] - 2026-03-24
 
