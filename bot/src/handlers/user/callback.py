@@ -47,6 +47,7 @@ async def weather_callback_handler(
     callback_data: WeatherCallback,
     locale: TranslatorRunner,
     repos: Dict[str, Any],
+    is_admin: bool,
 ) -> None:
     """Handle weather menu callbacks"""
 
@@ -278,7 +279,7 @@ async def weather_callback_handler(
             await message.edit_media(
                 media=InputMediaPhoto(media=photo, caption=main_menu_text),
                 text=main_menu_text,
-                reply_markup=get_btns_start(locale),
+                reply_markup=get_btns_start(locale, is_admin),
             )
 
         # Ответ что callback обработан
