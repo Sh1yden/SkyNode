@@ -18,8 +18,13 @@ from bot.src.core import get_logger, setup_logging
 from common.database.core import init_database
 from common.database.repositories import create_repositories
 from bot.src.handlers import router as main_router
-from bot.src.middlewares import DataBaseMiddleware, TranslateMiddleware
-from bot.src.utils import settings, start_tuna, bot_cleanup
+from bot.src.middlewares import (
+    DataBaseMiddleware,
+    TranslateMiddleware,
+    AdminAccessMiddleware,
+)
+from bot.src.utils import settings, start_tuna, bot_cleanup, ensure_main_admin
+from bot.src.web.routes import setup_health_routes
 
 storage = MemoryStorage()
 
@@ -95,9 +100,11 @@ def create_dispatcher(repos) -> Dispatcher | None:
 
         dp.message.middleware(TranslateMiddleware())
         dp.message.outer_middleware(DataBaseMiddleware(repos=repos))
+        dp.message.outer_middleware(AdminAccessMiddleware())
 
         dp.callback_query.middleware(TranslateMiddleware())
         dp.callback_query.outer_middleware(DataBaseMiddleware(repos=repos))
+        dp.callback_query.outer_middleware(AdminAccessMiddleware())
 
         _lg.info("Dispatcher created successfully.")
         return dp
@@ -139,17 +146,6 @@ def resolve_webhook_base_url() -> tuple[str, object | None]:
         return base_webhook_url.rstrip("/"), None
 
     return start_tuna(WEB_SERVER_PORT)
-
-
-async def live_handler(_: web.Request) -> web.Response:
-    return web.json_response({"status": "live"})
-
-
-async def ready_handler(request: web.Request) -> web.Response:
-    if request.app.get("is_ready", False):
-        return web.json_response({"status": "ready"})
-
-    return web.json_response({"status": "starting"}, status=503)
 
 
 def create_bot() -> Bot | None:
@@ -204,6 +200,8 @@ async def run_bot() -> None:
         repos = await create_repositories(SessionLocal, engine)  # type: ignore
         _lg.info("All Database initialized.")
 
+        await ensure_main_admin(repos["admin_repo"], settings.MAIN_ADMIN_ID)
+
         dp = create_dispatcher(repos)
         if dp is None:
             _lg.critical("Failed to create a dispatcher. Exiting.")
@@ -212,8 +210,7 @@ async def run_bot() -> None:
         # Setup web application
         app = web.Application()
         app["is_ready"] = False
-        app.router.add_get("/live", live_handler)
-        app.router.add_get("/ready", ready_handler)
+        setup_health_routes(app)
 
         webhook_handler = SimpleRequestHandler(
             dispatcher=dp,

@@ -1,9 +1,9 @@
 """Bot middlewares"""
 
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Awaitable, Callable, Dict, Union
 
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, Update, User
+from aiogram.types import CallbackQuery, Message, TelegramObject, Update, User
 from cachetools import TTLCache
 from fluentogram import TranslatorHub
 
@@ -71,4 +71,24 @@ class DataBaseMiddleware(BaseMiddleware):  # pylint: disable=too-few-public-meth
         data: Dict[str, Any],
     ) -> Any:
         data["repos"] = self.repos
+        return await handler(event, data)
+
+
+class AdminAccessMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
+    ) -> Any:
+        data["is_admin"] = False
+
+        user = getattr(event, "from_user", None)
+
+        if user:
+            repos = data.get("repos")
+            if repos and isinstance(repos, dict) and "admin_repo" in repos:
+                is_admin = await repos["admin_repo"].is_admin(user.id)
+                data["is_admin"] = is_admin
+
         return await handler(event, data)

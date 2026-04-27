@@ -3,7 +3,6 @@ from typing import Any, Dict
 from aiogram import Router, html
 from aiogram.filters import Command
 from aiogram.types import Message, User
-from aiogram.types import FSInputFile
 from fluentogram import TranslatorRunner
 
 from bot.src.core import get_logger
@@ -15,6 +14,8 @@ from bot.src.keyboards import (
 )
 from bot.src.services import get_weather_now
 
+from bot.src.utils import send_photo_save
+
 router = Router()
 _lg = get_logger()
 
@@ -25,6 +26,7 @@ async def command_start_handler(
     message: Message,
     locale: TranslatorRunner,
     repos: Dict[str, Any],
+    is_admin: bool,
 ) -> None:
     """Handle /start command and display welcome message"""
     try:
@@ -43,12 +45,12 @@ async def command_start_handler(
         main_menu_text = f"{locale.message_start_hello()}{full_name_user or 'Пользователь'}{locale.message_start_main_menu()}"
         _lg.debug("Main menu text prepared.")
 
-        photo = FSInputFile("assets/images/messages/SkyNode Welcome Message.png")
+        photo = await send_photo_save("SkyNode Welcome Message")
 
         await message.answer_photo(
             photo=photo,
             caption=main_menu_text,
-            reply_markup=get_btns_start(locale),
+            reply_markup=get_btns_start(locale, is_admin),
         )
 
         # Создание пользователя в БД
@@ -65,7 +67,7 @@ async def command_start_handler(
 @router.message(Command("help"))
 async def command_help_handler(message: Message, locale: TranslatorRunner):
     """Handle /help command"""
-    photo = FSInputFile("assets/images/messages/SkyNode Help Message.png")
+    photo = await send_photo_save("SkyNode Help Message")
 
     await message.answer_photo(
         photo=photo,

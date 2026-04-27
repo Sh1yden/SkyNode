@@ -10,6 +10,7 @@ from alembic import context
 from bot.src.utils import settings
 
 from common.database.core.database import Base
+from common.database.models.Admin import Admin
 from common.database.models.UserAllInfo import UserAllInfo
 from common.database.models.WeatherAllInfo import WeatherAllInfo
 

@@ -64,7 +64,10 @@ class MethodsOfDatabase:
         """Create all database tables if they don't exist"""
         async with self.engine.begin() as conn:
             try:
-                from common.database.models import UserAllInfo, WeatherAllInfo  # noqa: F401 # нужно для правильного создания таблиц
+                from common.database.models import (
+                    UserAllInfo,
+                    WeatherAllInfo,
+                )  # noqa: F401 # нужно для правильного создания таблиц
 
                 def get_existing_tables(sync_conn):
                     return inspect(sync_conn).get_table_names()
@@ -103,6 +106,32 @@ class MethodsOfDatabase:
             )
             # Можно продолжить без кэша
             self.cache = None
+
+    # ==== Admin Methods ====
+    async def add_admin(self, model: Type[T], user_id: int) -> bool:
+        """"""
+        async with self._get_session() as session:
+            try:
+                new_admin = model(user_id=user_id)
+                session.add(new_admin)
+                await session.commit()
+                return True
+            except Exception as e:
+                await session.rollback()
+                self._lg.error(f"Failed to add admin {user_id}: {e}")
+                return False
+
+    async def is_admin(self, model: Type[T], user_id: int) -> bool:
+        """"""
+        async with self._get_session() as session:
+            try:
+                # Используем EXISTS для максимальной скорости
+                stmt = select(exists().where(model.user_id == user_id))  # type: ignore
+                result = await session.scalar(stmt)
+                return bool(result)
+            except Exception as e:
+                self._lg.error(f"Error checking admin status: {e}")
+                return False
 
     # ==== User Methods ====
     async def create_one_user(
@@ -624,11 +653,7 @@ class MethodsOfDatabase:
         """
         async with self._get_session() as session:
             try:
-                stmt = (
-                    select(model.user_id)  # type: ignore
-                    .limit(limit)
-                    .offset(offset)
-                )
+                stmt = select(model.user_id).limit(limit).offset(offset)  # type: ignore
                 result = await session.execute(stmt)
                 user_ids = result.scalars().all()
 

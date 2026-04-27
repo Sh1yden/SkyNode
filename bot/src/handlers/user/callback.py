@@ -5,7 +5,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
-    FSInputFile,
     InputMediaPhoto,
     Location,
     Message,
@@ -35,7 +34,7 @@ from bot.src.services import get_weather_now, get_weather_hours
 from bot.src.services import get_weather_astro
 
 from bot.src.states import LocationState
-from bot.src.utils import clear_state
+from bot.src.utils import clear_state, send_photo_save
 
 router = Router()
 _lg = get_logger()
@@ -51,11 +50,12 @@ async def weather_callback_handler(
 ) -> None:
     """Handle weather menu callbacks"""
 
-    _lg.debug("CALLBACK HANDLER CALLED!")
-    _lg.debug(f"Action: {callback_data.action}")
-    _lg.debug(f"User: {callback.from_user.id}")
-    _lg.debug(f"Message exists: {callback.message is not None}")
-    _lg.debug(f"CALLBACK HANDLER TRIGGERED: {callback_data.action}")
+    _lg.debug(
+        "Callback triggered | action: %s | user: %s | has_msg: %s",
+        callback_data.action,
+        callback.from_user.id,
+        callback.message is not None,
+    )
 
     # Проверяем, что сообщение доступно для редактирования
     if not isinstance(callback.message, Message):
@@ -273,7 +273,7 @@ async def weather_callback_handler(
                 f"{locale.message_start_main_menu()}"
             )
 
-            photo = FSInputFile("assets/images/messages/SkyNode Welcome Message.png")
+            photo = await send_photo_save("SkyNode Welcome Message")
 
             await message.edit_media(
                 media=InputMediaPhoto(media=photo, caption=main_menu_text),
@@ -286,7 +286,7 @@ async def weather_callback_handler(
 
     except Exception as e:
         _lg.error(f"Error in callback handler: {e}")
-        await callback.answer(locale.message_service_error_not_edit(), show_alert=True)
+        await callback.answer(locale.message_service_error(error=e), show_alert=True)
 
 
 # DEVICE
@@ -377,6 +377,7 @@ async def handle_location_phone(
     except Exception as e:
         _lg.error(f"Internal error: {e}.")
         await clear_state(state)
+        await message.answer(locale.message_service_error(error=e), show_alert=True)
 
 
 @router.message(LocationState.waiting_for_city_pc, F.text)
@@ -455,6 +456,7 @@ async def handle_location_pc(
     except Exception as e:
         _lg.error(f"Internal error: {e}.")
         await clear_state(state)
+        await message.answer(locale.message_service_error(error=e), show_alert=True)
 
 
 @router.message(

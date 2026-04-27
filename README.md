@@ -339,7 +339,7 @@ python bot/src/utils/db_utils.py
 - [ ] Графики и визуализации
 - [x] Админ-панель
 
-Для более подробного описания переходите на доску Trello по ссылке: https://trello.com/b/ZnRVtPRN/my-telegram-bot-all-in-one
+Для более подробного описания переходите на доску Trello по ссылке: https://trello.com/b/ZnRVtPRN/skynode
 
 ## История изменений
 

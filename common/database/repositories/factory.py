@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine
 
+from common.database.repositories.admin_repository import AdminRepository
 from common.database.repositories.user_repository import UserRepository
 from common.database.repositories.weather_repository import WeatherRepository
 
@@ -19,4 +20,5 @@ async def create_repositories(
     return {
         "user_repo": UserRepository(db_methods),
         "weather_repo": WeatherRepository(db_methods),
+        "admin_repo": AdminRepository(db_methods),
     }

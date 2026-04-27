@@ -1,6 +1,9 @@
+
+
 # ? Service Msgs
 message_service_in_development = ⚡️ Функция находится в разработке. Ожидайте обновления.
 message_service_error_not_edit = ❌ Изменение сообщения недоступно.
+message_service_error = ❌ Ошибка: { $error }
 message_service_error_not_user_enable = ❌ Ошибка: пользователь не идентифицирован.
 message_service_error_not_found_in_service = ❌ Ошибка: данные из внешних источников недоступны.
 
@@ -19,6 +22,8 @@ message_before_start =
 
     Начать - /start
 
+# ? Admin Msgs
+message_admin_get_file_id = 📷 ID фотографии: { $file_id }
 
 # ? START Msgs
 message_start_hello = Приветствуем в SkyNode. 🤝

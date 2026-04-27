@@ -1,3 +1,6 @@
+# Admin Btns
+button_admin_menu = 🔐 Админ панель
+
 # ? Start Btns
 button_start_weather = ⛅️ Погода
 

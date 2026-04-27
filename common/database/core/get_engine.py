@@ -19,7 +19,9 @@ async def get_engine(prj_status=settings.PROJECT_STATUS) -> AsyncEngine | None:
     try:
         if prj_status == "development":
             _lg.debug(f"Using SQLite: {settings.SQLITE_DB_URL}")
-            return create_async_engine(settings.SQLITE_DB_URL)
+            return create_async_engine(
+                settings.SQLITE_DB_URL,
+            )
 
         elif prj_status == "product":
             _lg.debug(f"=== PostgreSQL Connection Details ===")
@@ -36,7 +38,11 @@ async def get_engine(prj_status=settings.PROJECT_STATUS) -> AsyncEngine | None:
                 f"{settings.POSTGRES_PASSWORD}@"
                 f"{settings.POSTGRES_HOST}:"
                 f"{settings.POSTGRES_PORT}/"
-                f"{settings.POSTGRES_DB}"
+                f"{settings.POSTGRES_DB}",
+                pool_size=10,
+                max_overflow=20,
+                pool_pre_ping=True,
+                pool_recycle=3600,
             )
 
         else:
