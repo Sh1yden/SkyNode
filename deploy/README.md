@@ -16,6 +16,7 @@ Define these in the GitLab project or inherited group:
 - `WEATHER_API_KEY`
 - `OPEN_WEATHER_MAP_API_KEY`
 - `GOOGLE_KEY`
+- `MAIN_ADMIN_ID`
 
 Recommended settings for secret variables:
 

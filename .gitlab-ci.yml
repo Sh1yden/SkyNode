@@ -29,6 +29,7 @@ validate:
     - test -n "$WEATHER_API_KEY"
     - test -n "$OPEN_WEATHER_MAP_API_KEY"
     - test -n "$GOOGLE_KEY"
+    - test -n "$MAIN_ADMIN_ID"
 
 test:
   stage: test
@@ -86,14 +87,15 @@ deploy production:
         --from-literal=WEATHER_API_KEY="$WEATHER_API_KEY" \
         --from-literal=OPEN_WEATHER_MAP_API_KEY="$OPEN_WEATHER_MAP_API_KEY" \
         --from-literal=GOOGLE_KEY="$GOOGLE_KEY" \
+        --from-literal=MAIN_ADMIN_ID="$MAIN_ADMIN_ID" \
         --dry-run=client -o yaml | kubectl apply -f -
     - kubectl apply -f .rendered-k8s/deployment.yaml
     - kubectl apply -f .rendered-k8s/service.yaml
     - kubectl apply -f .rendered-k8s/ingress.yaml
     - kubectl -n "$KUBE_NAMESPACE" rollout status deployment/"$SERVICE_NAME" --timeout=300s
   rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
       when: manual
-    - if: '$CI_COMMIT_TAG'
+    - if: "$CI_COMMIT_TAG"
       when: manual
     - when: never
