@@ -14,7 +14,7 @@ from fluentogram.exceptions import (
     KeyNotFoundError,
     RootTranslatorNotFoundError,
 )
-from bot.src.core import get_logger, setup_logging
+from common.core import get_logger, setup_logging
 from common.database.core import init_database
 from common.database.repositories import create_repositories
 from bot.src.handlers import router as main_router
@@ -23,7 +23,8 @@ from bot.src.middlewares import (
     TranslateMiddleware,
     AdminAccessMiddleware,
 )
-from bot.src.utils import settings, start_tuna, bot_cleanup, ensure_main_admin
+from bot.src.utils import settings, start_tuna, ensure_main_admin
+from common.utils import bot_cleanup
 from bot.src.web.routes import setup_health_routes
 
 storage = MemoryStorage()
@@ -163,7 +164,7 @@ def create_bot() -> Bot | None:
             return None
 
         bot = Bot(
-            token=TOKEN,
+            token=TOKEN,  # type: ignore
             default=DefaultBotProperties(parse_mode=ParseMode.HTML),
         )
 
@@ -173,6 +174,11 @@ def create_bot() -> Bot | None:
     except Exception as e:
         _lg.critical(f"Internal error: {e}.")
         return None
+
+
+async def on_startup_ready(app: web.Application):
+    app["is_ready"] = True
+    _lg.debug("Application state set to READY via signal")
 
 
 async def run_bot() -> None:
@@ -209,7 +215,7 @@ async def run_bot() -> None:
 
         # Setup web application
         app = web.Application()
-        app["is_ready"] = False
+        app.on_startup.append(on_startup_ready)  # type: ignore
         setup_health_routes(app)
 
         webhook_handler = SimpleRequestHandler(
@@ -232,7 +238,6 @@ async def run_bot() -> None:
 
         # Set webhook after the server is accepting traffic.
         await on_startup_set_webhook(bot, base_webhook_url)
-        app["is_ready"] = True
 
         _lg.info(f"Web server started on {WEB_SERVER_HOST}:{WEB_SERVER_PORT}")
         _lg.info("Bot is running. Press Ctrl+C to stop.")
@@ -249,7 +254,7 @@ async def run_bot() -> None:
         # All bot cleanup
         await bot_cleanup(
             runner,
-            bot,  # type:ignore
+            bot,  # type: ignore
             storage,
             repos,
             tuna_process,

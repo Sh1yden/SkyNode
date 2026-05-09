@@ -23,6 +23,12 @@ message_before_start =
     Начать - /start
 
 # ? Admin Msgs
+message_admin_main_menu =
+    Приветствуем в нашей админ панели 🤝{ $admin_name }!
+    Количество пользователей бота: { $user_count }.
+    💼 Главное админ меню.
+    • Чтобы вывести все команды бота доступные только админам, напиши /admin_help.
+    • Все остальные функции доступны нажав кнопки снизу.
 message_admin_get_file_id = 📷 ID фотографии: { $file_id }
 
 # ? START Msgs

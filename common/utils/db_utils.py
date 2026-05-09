@@ -15,7 +15,7 @@ from sqlalchemy import inspect, exists, select, func
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.utils import RedisCache
 
 # TypeVar для generic типизации
@@ -67,6 +67,7 @@ class MethodsOfDatabase:
                 from common.database.models import (
                     UserAllInfo,
                     WeatherAllInfo,
+                    Admin,
                 )  # noqa: F401 # нужно для правильного создания таблиц
 
                 def get_existing_tables(sync_conn):
@@ -540,7 +541,7 @@ class MethodsOfDatabase:
                 self._lg.error(f"Error finding users: {e}.", exc_info=True)
                 return []
 
-    async def count_users(  # TODO
+    async def count_users(
         self,
         model: Type[T],
         filters: dict[str, Any] | None = None,
@@ -563,12 +564,16 @@ class MethodsOfDatabase:
         """
         async with self._get_session() as session:
             try:
-                stmt = select(func.count(model.id))  # type: ignore
+                stmt = select(func.count()).select_from(model)
 
                 if filters:
                     for key, value in filters.items():
                         if hasattr(model, key):
                             stmt = stmt.where(getattr(model, key) == value)
+                        else:
+                            self._lg.warning(
+                                f"Invalid filter field: {key}. For model {model.__name__}."
+                            )
 
                 count = await session.scalar(stmt)
 
@@ -636,7 +641,7 @@ class MethodsOfDatabase:
                 self._lg.error(f"Batch creation failed: {e}.", exc_info=True)
                 return 0, len(users_data), [f"Batch error: {str(e)}"]
 
-    async def get_all_user_ids(  # TODO
+    async def get_all_user_ids(
         self,
         model: Type[T],
         limit: int | None = 100,
@@ -886,7 +891,7 @@ if __name__ == "__main__":
     import asyncio
     from common.database.core import init_database
     from common.database.models import UserAllInfo
-    from bot.src.core import setup_logging
+    from common.core import setup_logging
 
     async def main():
         setup_logging(level="DEBUG")

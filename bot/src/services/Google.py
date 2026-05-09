@@ -11,7 +11,7 @@ import asyncio
 
 from fluentogram import TranslatorRunner
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.services import get_cord_from_city
 from bot.src.utils import get_raw_link_api, req_data, settings
 
@@ -196,7 +196,7 @@ async def goo_get_weather_hours(
 if __name__ == "__main__":
 
     async def main():
-        from bot.src.core import setup_logging
+        from common.core import setup_logging
 
         setup_logging(level="DEBUG")
 

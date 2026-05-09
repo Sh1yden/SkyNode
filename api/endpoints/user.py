@@ -9,8 +9,7 @@ from api.schemas import (
 )
 from api.dependencies import get_user_repos
 
-from bot.src.core import get_logger
-
+from common.core import get_logger
 
 router = APIRouter(prefix="/users", tags=["users"])
 _lg = get_logger()
@@ -24,6 +23,14 @@ async def all_ids(
     repo: dict = Depends(get_user_repos),
 ):
     return await repo.get_all_user_ids(limit=limit, offset=offset)
+
+
+@router.get("/count")
+async def count_all(
+    repo: dict = Depends(get_user_repos),
+):
+    count = await repo.count_users()
+    return count
 
 
 @router.get("/exists/{user_id}", response_model=bool)

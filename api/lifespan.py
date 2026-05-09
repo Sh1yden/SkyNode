@@ -2,10 +2,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from bot.src.utils import api_cleanup
+from common.utils import api_cleanup
 from common.database.repositories.factory import create_repositories
 from common.database.core import init_database
-from bot.src.core import get_logger, setup_logging
+from common.core import get_logger, setup_logging
 from admin.main import setup_admin
 
 setup_logging(level="DEBUG")

@@ -13,7 +13,7 @@ import asyncio
 
 import aiohttp
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.utils import (
     Language,
     req_data,
@@ -155,7 +155,7 @@ async def get_cord_from_city(name_city: str | None) -> dict[str, str] | None:
 if __name__ == "__main__":
 
     async def main():
-        from bot.src.core import setup_logging
+        from common.core import setup_logging
 
         setup_logging(level="DEBUG")
 

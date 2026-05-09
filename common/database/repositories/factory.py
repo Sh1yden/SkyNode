@@ -4,7 +4,7 @@ from common.database.repositories.admin_repository import AdminRepository
 from common.database.repositories.user_repository import UserRepository
 from common.database.repositories.weather_repository import WeatherRepository
 
-from bot.src.utils.db_utils import get_database_methods
+from common.utils import get_database_methods
 from common.database.core.database import Base
 
 

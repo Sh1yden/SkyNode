@@ -10,8 +10,7 @@ from api.schemas import (
 
 from api.dependencies import get_weather_repo
 
-from bot.src.core import get_logger
-
+from common.core import get_logger
 
 router = APIRouter(prefix="/weather", tags=["weather"])
 _lg = get_logger()

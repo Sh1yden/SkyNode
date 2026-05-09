@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 from fluentogram import TranslatorRunner
 
-from bot.src.core import get_logger
+from common.core import get_logger
 
 # utils
 from bot.src.utils import generate_hourly_forecast_image
@@ -556,7 +556,7 @@ async def get_weather_wind_pressure() -> None:
 if __name__ == "__main__":
 
     async def main():
-        from bot.src.core import setup_logging
+        from common.core import setup_logging
 
         setup_logging(level="DEBUG")
 

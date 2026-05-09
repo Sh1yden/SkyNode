@@ -13,7 +13,7 @@ async def get_engine(prj_status=settings.PROJECT_STATUS) -> AsyncEngine | None:
     Returns:
         AsyncEngine: Async SQLAlchemy engine
     """
-    from bot.src.core import get_logger
+    from common.core import get_logger
 
     _lg = get_logger()
     try:

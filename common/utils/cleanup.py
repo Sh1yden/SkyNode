@@ -1,5 +1,4 @@
-import logging
-from bot.src.core import get_logger
+from common.core import get_logger
 
 _lg = get_logger()
 

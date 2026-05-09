@@ -9,7 +9,7 @@ import random
 from enum import Enum
 from typing import Dict, List, Optional
 
-from bot.src.core import get_logger
+from common.core import get_logger
 
 _lg = get_logger()
 
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     import asyncio
 
     async def main():
-        from bot.src.core import setup_logging
+        from common.core import setup_logging
         from bot.src.utils import get_raw_link_api, get_soup, parse_data
 
         setup_logging(level="DEBUG")

@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, User
 from fluentogram import TranslatorRunner
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.keyboards import (
     get_btns_device,
     get_btns_start,

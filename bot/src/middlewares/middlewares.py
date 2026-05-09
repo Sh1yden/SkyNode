@@ -1,13 +1,13 @@
 """Bot middlewares"""
 
-from typing import Any, Awaitable, Callable, Dict, Union
+from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject, Update, User
+from aiogram.types import TelegramObject, Update, User
 from cachetools import TTLCache
 from fluentogram import TranslatorHub
 
-from bot.src.core import get_logger
+from common.core import get_logger
 
 caches = {"default": TTLCache(maxsize=10_000, ttl=0.1)}
 _lg = get_logger()

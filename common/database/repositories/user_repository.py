@@ -4,7 +4,7 @@ from aiogram.types import User
 
 from common.database.models import UserAllInfo
 from common.database.repositories.base import BaseRepository
-from bot.src.utils.db_utils import MethodsOfDatabase
+from common.utils import MethodsOfDatabase
 
 
 class UserRepository(BaseRepository[UserAllInfo]):
@@ -73,6 +73,10 @@ class UserRepository(BaseRepository[UserAllInfo]):
         if longitude is not None:
             updates["longitude"] = longitude
         return await self.update(user_id, updates)
+
+    async def count_users(self) -> int:
+        """Count users."""
+        return await self.db_methods.count_users(model=self.model)
 
     async def get_all_user_ids(
         self,

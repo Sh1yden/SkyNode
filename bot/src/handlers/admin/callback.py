@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message, User
 
 from fluentogram import TranslatorRunner
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.filters import AdminCallback, IsAdmin
 
 router = Router()
@@ -40,7 +40,12 @@ async def admin_callback_handler(
 
     try:
         if callback_data.action == "admin_menu":
-            pass
+            await message.answer(
+                text=locale.message_admin_main_menu(
+                    admin_name=user.first_name,
+                    user_count=await repos["user_repo"].count_users(),
+                ),
+            )
     except Exception as e:
         _lg.error(f"Error in callback handler: {e}")
         await callback.answer(locale.message_service_error(error=e), show_alert=True)

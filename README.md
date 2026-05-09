@@ -1,4 +1,4 @@
-![[assets/images/messages/SkyNode Avatar.png]]
+![SkyNode Avatar](assets/images/messages/SkyNode%20Avatar.png)
 
 # SkyNode
 
@@ -6,7 +6,7 @@ Telegram-бот с функционалом погоды и системой в�
 
 ## Описание
 
-![[assets/images/messages/SkyNode Before Start.png]]
+![SkyNode Description](assets/images/messages/SkyNode%20Before%20Start.png)
 
 Многофункциональный Telegram-бот, реализующий следующие возможности:
 

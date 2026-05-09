@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, AsyncEngine
 from sqlalchemy.orm import declarative_base
 
 from .get_engine import get_engine
-from bot.src.core import get_logger
+from common.core import get_logger
 
 _lg = get_logger()
 

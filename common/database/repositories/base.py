@@ -3,8 +3,8 @@ from typing import Type, Any, TypeVar, Generic
 
 from sqlalchemy.orm import DeclarativeBase
 
-from bot.src.core import get_logger
-from bot.src.utils.db_utils import MethodsOfDatabase
+from common.core import get_logger
+from common.utils import MethodsOfDatabase
 
 T = TypeVar("T", bound=DeclarativeBase)
 

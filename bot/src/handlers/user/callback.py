@@ -13,7 +13,7 @@ from aiogram.types import (
 )
 from fluentogram import TranslatorRunner
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.filters import DeviceCallback, WeatherCallback
 from bot.src.keyboards import (
     get_btns_device,
@@ -104,8 +104,6 @@ async def weather_callback_handler(
                     longitude=longitude,
                     usr_loc=location,
                 )
-
-                _lg.debug(f"all_msg is - {all_msg}")
 
                 await message.edit_text(
                     text=str(all_msg),
@@ -281,9 +279,6 @@ async def weather_callback_handler(
                 text=main_menu_text,
                 reply_markup=get_btns_start(locale, is_admin),
             )
-
-        # Ответ что callback обработан
-        await callback.answer()
 
     except Exception as e:
         _lg.error(f"Error in callback handler: {e}")

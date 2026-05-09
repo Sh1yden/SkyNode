@@ -3,7 +3,7 @@ import redis.asyncio
 from typing import Any
 
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.utils import settings
 
 

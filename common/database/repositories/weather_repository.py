@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from common.database.models import WeatherAllInfo
 from common.database.repositories.base import BaseRepository
-from bot.src.utils.db_utils import MethodsOfDatabase
+from common.utils import MethodsOfDatabase
 
 
 class WeatherRepository(BaseRepository[WeatherAllInfo]):

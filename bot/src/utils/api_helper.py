@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
 import aiohttp
 
-from bot.src.core import get_logger
+from common.core import get_logger
 
 _lg = get_logger(__name__)
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     import asyncio
 
     async def main():
-        from bot.src.core import setup_logging
+        from common.core import setup_logging
 
         setup_logging(level="DEBUG")
 

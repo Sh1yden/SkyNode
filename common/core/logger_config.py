@@ -17,7 +17,6 @@ def setup_logging(
     Вызывается один раз при старте.
     """
 
-    # Создаём директорию для логов
     log_dir.mkdir(parents=True, exist_ok=True)
 
     # Корневой логгер приложения

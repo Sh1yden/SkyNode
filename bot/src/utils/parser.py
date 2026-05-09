@@ -12,7 +12,7 @@ import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
 
-from bot.src.core import get_logger
+from common.core import get_logger
 
 _lg = get_logger(__name__)
 

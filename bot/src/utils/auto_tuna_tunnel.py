@@ -4,7 +4,7 @@ import time
 from typing import Tuple
 
 from bot.src.utils import settings
-from bot.src.core import get_logger
+from common.core import get_logger
 
 _lg = get_logger()
 

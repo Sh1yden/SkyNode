@@ -2,7 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from fluentogram import TranslatorRunner
 
-from bot.src.filters import WeatherCallback
+from bot.src.filters import WeatherCallback, AdminCallback
 
 
 def get_btns_start(
@@ -12,6 +12,7 @@ def get_btns_start(
 
     builder = InlineKeyboardBuilder()
 
+    # ⛅️ Погода
     builder.row(
         InlineKeyboardButton(
             text=locale.button_start_weather(),
@@ -19,11 +20,12 @@ def get_btns_start(
         )
     )
 
+    # 🔐 Админ панель
     if is_admin:
         builder.row(
             InlineKeyboardButton(
                 text=locale.button_admin_menu(),
-                callback_data=WeatherCallback(action="admin_menu").pack(),
+                callback_data=AdminCallback(action="admin_menu").pack(),
             )
         )
 

@@ -13,7 +13,7 @@ import asyncio
 
 from fluentogram import TranslatorRunner
 
-from bot.src.core import get_logger
+from common.core import get_logger
 from bot.src.services import get_cord_from_city
 from bot.src.utils import (
     Language,
@@ -314,7 +314,7 @@ async def yan_get_weather_5d(
 if __name__ == "__main__":
 
     async def main():
-        from bot.src.core import setup_logging
+        from common.core import setup_logging
 
         setup_logging(level="DEBUG")
 

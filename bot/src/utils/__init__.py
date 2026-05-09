@@ -1,6 +1,5 @@
 __all__ = [
     "config",
-    "db_utils",
     "cache",
     "save_load_delete",
     "auto_tuna_tunnel",
@@ -8,7 +7,6 @@ __all__ = [
     "api_helper",
     "parser",
     "headers",
-    "cleanup",
     "hours_image",
     "photo_cache",
     "admin_init",
@@ -19,7 +17,6 @@ from .config import SettingsSchema, settings
 from .api_helper import get_raw_link_api, req_data
 from .cache import RedisCache
 from .auto_tuna_tunnel import start_tuna, check_tuna_auth, save_tuna_token
-from .db_utils import MethodsOfDatabase, get_database_methods
 from .headers import Browser, Language, Platform
 from .headers import (
     headers_factory,
@@ -36,7 +33,6 @@ from .headers import (
 )
 from .parser import get_soup, parse_data
 from .state_helpers import *
-from .cleanup import bot_cleanup, api_cleanup
 from .hours_image import generate_hourly_forecast_image
 from .photo_cache import send_photo_save
 from .admin_init import ensure_main_admin
