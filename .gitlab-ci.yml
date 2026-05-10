@@ -15,6 +15,23 @@ variables:
   IMAGE_REPO: "registry.birdegop.ru/docker/images/skynode"
   IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
 
+.production_rules: &production_rules
+  - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    when: manual
+  - if: '$CI_COMMIT_TAG'
+    when: manual
+  - when: never
+
+.kube_before_script: &kube_before_script
+  - |
+    if [ -f "$KUBE_CONFIG" ]; then
+      cp "$KUBE_CONFIG" /tmp/config
+    else
+      echo "$KUBE_CONFIG" | base64 -d > /tmp/config
+    fi
+  - export KUBECONFIG=/tmp/config
+  - chmod 600 /tmp/config
+
 validate:
   stage: validate
   image: registry.birdegop.ru/docker/images/builder:${BUILDER_VERSION}
@@ -63,15 +80,12 @@ build image:
 deploy production:
   stage: deploy
   image: registry.birdegop.ru/docker/images/builder:${BUILDER_VERSION}
-  before_script:
-    - |
-      if [ -f "$KUBE_CONFIG" ]; then
-        cp "$KUBE_CONFIG" /tmp/config
-      else
-        echo "$KUBE_CONFIG" | base64 -d > /tmp/config
-      fi
-    - export KUBECONFIG=/tmp/config
-    - chmod 600 /tmp/config
+  before_script: *kube_before_script
+  resource_group: production
+  environment:
+    name: production
+    url: $BASE_WEBHOOK_URL
+    on_stop: kill production
   script:
     - |
       mkdir -p .rendered-k8s
@@ -93,9 +107,19 @@ deploy production:
     - kubectl apply -f .rendered-k8s/service.yaml
     - kubectl apply -f .rendered-k8s/ingress.yaml
     - kubectl -n "$KUBE_NAMESPACE" rollout status deployment/"$SERVICE_NAME" --timeout=300s
-  rules:
-    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
-      when: manual
-    - if: "$CI_COMMIT_TAG"
-      when: manual
-    - when: never
+  rules: *production_rules
+
+kill production:
+  stage: deploy
+  image: registry.birdegop.ru/docker/images/builder:${BUILDER_VERSION}
+  before_script: *kube_before_script
+  resource_group: production
+  environment:
+    name: production
+    action: stop
+  script:
+    - kubectl -n "$KUBE_NAMESPACE" delete ingress "$SERVICE_NAME" --ignore-not-found=true
+    - kubectl -n "$KUBE_NAMESPACE" delete service "$SERVICE_NAME" --ignore-not-found=true
+    - kubectl -n "$KUBE_NAMESPACE" delete deployment "$SERVICE_NAME" --ignore-not-found=true
+    - kubectl -n "$KUBE_NAMESPACE" delete secret "${SERVICE_NAME}-runtime" --ignore-not-found=true
+  rules: *production_rules
