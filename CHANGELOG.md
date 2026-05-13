@@ -5,7 +5,7 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/),
 и этот проект придерживается [Semantic Versioning](https://semver.org/lang/ru/).
 
-## [Unreleased] (Frozen)
+## [Unreleased]
 
 ### Планируется
 
@@ -24,6 +24,35 @@
 - [ ] Админ-панель/в тг боте
 
 Для более подробного описания переходите на доску Trello по ссылке: https://trello.com/b/ZnRVtPRN/skynode
+
+## [0.5.1] - 2026-05-13
+
+### Добавлено
+
+- Начата разработка админ-панели прямо в боте.
+- Поддержка автоматического туннеля Cloudflare.
+- Состояние Menu для обработки кнопок в главном меню.
+- Эндпоинт кол-во юзеров бота. Так же добавлен в админ-меню(как счётчик).
+- Функция в `db_utils.py` и в `repos` для получения кол-во юзеров бота.
+
+### Изменено
+
+- Отдельная обработка выхода в главное меню.
+- `cache.py` перенесён в общий модуль `common.utils`.
+- `clenup.py` перенесён в общий модуль `common.utils`.
+- `db_utils.py` перенесён в общий модуль `common.utils`.
+- `.gitignore` изменён - скрыт лишний контент.
+
+### Исправлено
+
+- Убраны лишние импорты в `middlewares.py`.
+- Неверное использование `WeatherCallback` в админ клавиатуре.
+- feat. Исправлено устаревшее состояние `is_ready` при запуске веб приложения.
+- Отображение картинок в `README.md`.
+- Ссылка на версии проекта в `CHANGELOG.md`.
+- Структура заголовков в `README.md`.
+- Ошибка подключения к tuna и при этом не работал webhook.
+- `is_admin` фильтр добавлен в недостающие модули.
 
 ## [0.5.0] - 2026-04-26
 
@@ -47,7 +76,7 @@
 
 - Debug в callback обработке погодных данных и не только.
 - Повышена стабильность инициализации базы данных.
-- Небольшие ошибки и опечатки в [[README.md]].
+- Небольшие ошибки и опечатки в `README.md`.
 
 ## [0.4.3] - 2026-04-20
 
@@ -650,40 +679,40 @@
 - Первый коммит
 - Создание репозитория
 
-[Unreleased]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.5.0...HEAD
-[0.5.0]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.4.3...v0.5.0
-[0.4.3]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.4.2...v0.4.3
-[0.4.2]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.4.1...v0.4.2
-[0.4.1]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.4.0...v0.4.1
-[0.4.0]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.1.5...v0.2.0
-[0.1.5]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.1.0...v0.1.5
-[0.1.0]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.8...v0.1.0
-[0.0.8]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.7...v0.0.8
-[0.0.7]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.6...v0.0.7
-[0.0.6]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.5...v0.0.6
-[0.0.5]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.4...v0.0.5
-[0.0.4]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.3...v0.0.4
-[0.0.3]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.1...v0.0.2
-[0.0.1]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.8...v0.0.1
-[0.0.0-alpha.8]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.7...v0.0.0-alpha.8
-[0.0.0-alpha.7]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.6...v0.0.0-alpha.7
-[0.0.0-alpha.6]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.5...v0.0.0-alpha.6
-[0.0.0-alpha.5]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.4...v0.0.0-alpha.5
-[0.0.0-alpha.4]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.3...v0.0.0-alpha.4
-[0.0.0-alpha.3]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.2...v0.0.0-alpha.3
-[0.0.0-alpha.2]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-alpha.1...v0.0.0-alpha.2
-[0.0.0-alpha.1]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-dev.6...v0.0.0-alpha.1
-[0.0.0-dev.6]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-dev.5...v0.0.0-dev.6
-[0.0.0-dev.5]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-dev.4...v0.0.0-dev.5
-[0.0.0-dev.4]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-dev.3...v0.0.0-dev.4
-[0.0.0-dev.3]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-dev.2...v0.0.0-dev.3
-[0.0.0-dev.2]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-dev.1...v0.0.0-dev.2
-[0.0.0-dev.1]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-pre-alpha.4...v0.0.0-dev.1
-[0.0.0-pre-alpha.4]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-pre-alpha.3...v0.0.0-pre-alpha.4
-[0.0.0-pre-alpha.3]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-pre-alpha.2...v0.0.0-pre-alpha.3
-[0.0.0-pre-alpha.2]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0-pre-alpha.1...v0.0.0-pre-alpha.2
-[0.0.0-pre-alpha.1]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/compare/v0.0.0...v0.0.0-pre-alpha.1
-[0.0.0]: https://github.com/Sh1yden/All-In-One-Telegram-Bot/releases/tag/v0.0.0
+[Unreleased]: https://github.com/Sh1yden/SkyNode/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/Sh1yden/SkyNode/compare/v0.4.3...v0.5.0
+[0.4.3]: https://github.com/Sh1yden/SkyNode/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/Sh1yden/SkyNode/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/Sh1yden/SkyNode/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/Sh1yden/SkyNode/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/Sh1yden/SkyNode/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Sh1yden/SkyNode/compare/v0.1.5...v0.2.0
+[0.1.5]: https://github.com/Sh1yden/SkyNode/compare/v0.1.0...v0.1.5
+[0.1.0]: https://github.com/Sh1yden/SkyNode/compare/v0.0.8...v0.1.0
+[0.0.8]: https://github.com/Sh1yden/SkyNode/compare/v0.0.7...v0.0.8
+[0.0.7]: https://github.com/Sh1yden/SkyNode/compare/v0.0.6...v0.0.7
+[0.0.6]: https://github.com/Sh1yden/SkyNode/compare/v0.0.5...v0.0.6
+[0.0.5]: https://github.com/Sh1yden/SkyNode/compare/v0.0.4...v0.0.5
+[0.0.4]: https://github.com/Sh1yden/SkyNode/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/Sh1yden/SkyNode/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/Sh1yden/SkyNode/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.8...v0.0.1
+[0.0.0-alpha.8]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.7...v0.0.0-alpha.8
+[0.0.0-alpha.7]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.6...v0.0.0-alpha.7
+[0.0.0-alpha.6]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.5...v0.0.0-alpha.6
+[0.0.0-alpha.5]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.4...v0.0.0-alpha.5
+[0.0.0-alpha.4]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.3...v0.0.0-alpha.4
+[0.0.0-alpha.3]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.2...v0.0.0-alpha.3
+[0.0.0-alpha.2]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-alpha.1...v0.0.0-alpha.2
+[0.0.0-alpha.1]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-dev.6...v0.0.0-alpha.1
+[0.0.0-dev.6]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-dev.5...v0.0.0-dev.6
+[0.0.0-dev.5]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-dev.4...v0.0.0-dev.5
+[0.0.0-dev.4]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-dev.3...v0.0.0-dev.4
+[0.0.0-dev.3]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-dev.2...v0.0.0-dev.3
+[0.0.0-dev.2]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-dev.1...v0.0.0-dev.2
+[0.0.0-dev.1]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-pre-alpha.4...v0.0.0-dev.1
+[0.0.0-pre-alpha.4]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-pre-alpha.3...v0.0.0-pre-alpha.4
+[0.0.0-pre-alpha.3]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-pre-alpha.2...v0.0.0-pre-alpha.3
+[0.0.0-pre-alpha.2]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0-pre-alpha.1...v0.0.0-pre-alpha.2
+[0.0.0-pre-alpha.1]: https://github.com/Sh1yden/SkyNode/compare/v0.0.0...v0.0.0-pre-alpha.1
+[0.0.0]: https://github.com/Sh1yden/SkyNode/releases/tag/v0.0.0

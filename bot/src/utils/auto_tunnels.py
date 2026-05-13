@@ -1,3 +1,4 @@
+import re
 import json
 import subprocess
 import time
@@ -82,7 +83,6 @@ def check_tuna_auth() -> bool:
 
                     _lg.debug(f"Auth check: level={level}, msg={msg[:50]}...")
 
-                    # Ошибка авторизации - НЕ авторизован
                     if (
                         "must be specified" in msg
                         or "Unknown token" in msg
@@ -92,7 +92,6 @@ def check_tuna_auth() -> bool:
                         is_authenticated = False
                         break
 
-                    # Нашли "Forwarding" или "Account:" - авторизован
                     if msg == "Forwarding" or msg.startswith("Account:"):
                         _lg.debug("Found success indicator - authenticated")
                         is_authenticated = True
@@ -123,14 +122,12 @@ def check_tuna_auth() -> bool:
 def start_tuna(port: int, timeout: int = 30) -> Tuple[str, subprocess.Popen]:
     """Start Tuna tunnel and extract public URL"""
     try:
-        # ВСЕГДА сохраняем токен перед запуском
         _lg.debug("Ensuring Tuna token is saved...")
         if not save_tuna_token():
             raise RuntimeError("Failed to save Tuna token")
 
         time.sleep(1)
 
-        # Проверяем что токен применился
         if not check_tuna_auth():
             _lg.error("Tuna still not authenticated after saving token")
             _lg.error("This might indicate an invalid token")
@@ -200,3 +197,87 @@ def start_tuna(port: int, timeout: int = 30) -> Tuple[str, subprocess.Popen]:
     except Exception as e:
         _lg.critical(f"Failed to start Tuna: {e}", exc_info=True)
         raise
+
+
+def start_cloudflare(port: int, timeout: int = 30) -> Tuple[str, subprocess.Popen]:
+    """
+    Запускает туннель Cloudflare и фильтрует логи в стиле Tuna.
+    """
+
+    cmd = [
+        "cloudflared",
+        "tunnel",
+        "--url",
+        f"http://localhost:{port}",
+        "--output",
+        "json",
+    ]
+
+    _lg.debug(f"Starting Cloudflare tunnel on port {port}")
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+
+    public_url = None
+    start_time = time.time()
+    url_pattern = re.compile(r"https://[a-z0-9.-]+\.trycloudflare\.com")
+
+    if process.stdout:
+        for line in process.stdout:
+            if time.time() - start_time > timeout:
+                break
+
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                data = json.loads(line)
+                message = data.get("message", "")
+                level = data.get("level", "info")
+
+                match = url_pattern.search(message)
+                if match:
+                    public_url = match.group(0)
+                    _lg.info(f"✓ Cloudflare URL established: {public_url}")
+                    _lg.debug("Waiting for DNS to propagate...")
+                    time.sleep(4)
+                    return public_url, process
+
+                if "Registered tunnel connection" in message:
+                    location = data.get("location", "unknown")
+                    _lg.debug(f"[Cloudflare] Tunnel registered! Node: {location}")
+
+                elif "Connection established" in message:
+                    _lg.debug("[Cloudflare] Connection stable.")
+
+                elif level == "error" or level == "fatal":
+                    _lg.error(f"[Cloudflare Bridge Error] {message}")
+
+            except json.JSONDecodeError:
+                match = url_pattern.search(line)
+                if match:
+                    public_url = match.group(0)
+                    return public_url, process
+
+                if "buffer size" not in line.lower():
+                    _lg.debug(f"[Cloudflare Raw] {line}")
+
+    if process.poll() is not None:
+        _lg.error("Cloudflare process terminated unexpectedly")
+
+    process.terminate()
+    raise RuntimeError("Не удалось запустить Cloudflare туннель")
+
+
+if __name__ == "__main__":
+    from common.core import setup_logging
+
+    setup_logging("DEBUG")
+
+    start_cloudflare(8080)

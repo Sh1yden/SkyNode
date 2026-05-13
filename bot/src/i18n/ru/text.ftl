@@ -1,5 +1,3 @@
-
-
 # ? Service Msgs
 message_service_in_development = ⚡️ Функция находится в разработке. Ожидайте обновления.
 message_service_error_not_edit = ❌ Изменение сообщения недоступно.
@@ -22,6 +20,7 @@ message_before_start =
 
     Начать - /start
 
+
 # ? Admin Msgs
 message_admin_main_menu =
     Приветствуем в нашей админ панели 🤝{ $admin_name }!
@@ -30,6 +29,7 @@ message_admin_main_menu =
     • Чтобы вывести все команды бота доступные только админам, напиши /admin_help.
     • Все остальные функции доступны нажав кнопки снизу.
 message_admin_get_file_id = 📷 ID фотографии: { $file_id }
+
 
 # ? START Msgs
 message_start_hello = Приветствуем в SkyNode. 🤝

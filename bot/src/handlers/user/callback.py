@@ -14,7 +14,7 @@ from aiogram.types import (
 from fluentogram import TranslatorRunner
 
 from common.core import get_logger
-from bot.src.filters import DeviceCallback, WeatherCallback
+from bot.src.filters import MenuCallback, DeviceCallback, WeatherCallback
 from bot.src.keyboards import (
     get_btns_device,
     get_btns_location,
@@ -40,6 +40,55 @@ router = Router()
 _lg = get_logger()
 
 
+# MAIN MENU
+@router.callback_query(MenuCallback.filter())
+async def main_menu_callback_handler(
+    callback: CallbackQuery,
+    callback_data: MenuCallback,
+    locale: TranslatorRunner,
+    is_admin: bool,
+) -> None:
+    """Handle main menu callbacks"""
+
+    _lg.debug(
+        "Callback triggered | action: %s | user: %s | has_msg: %s",
+        callback_data.action,
+        callback.from_user.id,
+        callback.message is not None,
+    )
+
+    # Проверяем, что сообщение доступно для редактирования
+    if not isinstance(callback.message, Message):
+        _lg.warning("Cannot edit inaccessible message.")
+        await callback.answer(locale.message_service_error_not_edit())
+        return
+
+    message: Message | None = callback.message
+    user: User | None = callback.from_user
+
+    try:
+        # 🔙 Назад
+        if callback_data.action == "main_menu":
+            full_name_user = user.full_name
+            main_menu_text = (
+                f"{locale.message_start_hello()}"
+                f"{full_name_user or 'Пользователь'}"
+                f"{locale.message_start_main_menu()}"
+            )
+
+            photo = await send_photo_save("SkyNode Welcome Message")
+
+            await message.edit_media(
+                media=InputMediaPhoto(media=photo, caption=main_menu_text),
+                text=main_menu_text,
+                reply_markup=get_btns_start(locale, is_admin),
+            )
+
+    except Exception as e:
+        _lg.error(f"Error in callback handler: {e}")
+        await callback.answer(locale.message_service_error(error=e), show_alert=True)
+
+
 # WEATHER MENU
 @router.callback_query(WeatherCallback.filter())
 async def weather_callback_handler(
@@ -47,7 +96,6 @@ async def weather_callback_handler(
     callback_data: WeatherCallback,
     locale: TranslatorRunner,
     repos: Dict[str, Any],
-    is_admin: bool,
 ) -> None:
     """Handle weather menu callbacks"""
 
@@ -261,23 +309,6 @@ async def weather_callback_handler(
             await message.edit_text(
                 text=locale.message_service_in_development(),
                 reply_markup=get_btns_exit_to_weather_menu(locale),
-            )
-
-        # 🔙 Назад
-        elif callback_data.action == "weather_get_back":
-            full_name_user = user.full_name
-            main_menu_text = (
-                f"{locale.message_start_hello()}"
-                f"{full_name_user or 'Пользователь'}"
-                f"{locale.message_start_main_menu()}"
-            )
-
-            photo = await send_photo_save("SkyNode Welcome Message")
-
-            await message.edit_media(
-                media=InputMediaPhoto(media=photo, caption=main_menu_text),
-                text=main_menu_text,
-                reply_markup=get_btns_start(locale, is_admin),
             )
 
     except Exception as e:

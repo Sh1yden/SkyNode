@@ -23,7 +23,7 @@ from bot.src.middlewares import (
     TranslateMiddleware,
     AdminAccessMiddleware,
 )
-from bot.src.utils import settings, start_tuna, ensure_main_admin
+from bot.src.utils import settings, start_cloudflare, ensure_main_admin
 from common.utils import bot_cleanup
 from bot.src.web.routes import setup_health_routes
 
@@ -40,9 +40,7 @@ WEB_SERVER_HOST = settings.WEB_SERVER_HOST
 WEB_SERVER_PORT = int(settings.WEB_SERVER_PORT)
 
 # Telegram webhook settings:
-# Path to webhook route, on which Telegram will send requests
 WEBHOOK_PATH = "/webhook"
-# Secret key to validate requests from Telegram (optional)
 WEBHOOK_SECRET = settings.TELEGRAM_WEBHOOK_SECRET
 
 
@@ -141,12 +139,12 @@ async def on_startup_set_webhook(bot: Bot, base_webhook_url: str) -> None:
 
 
 def resolve_webhook_base_url() -> tuple[str, object | None]:
-    """Use explicit webhook URL in cluster, Tuna locally."""
+    """Use explicit webhook URL in cluster, Tunnel locally."""
     base_webhook_url = settings.BASE_WEBHOOK_URL.strip()
     if base_webhook_url:
         return base_webhook_url.rstrip("/"), None
 
-    return start_tuna(WEB_SERVER_PORT)
+    return start_cloudflare(WEB_SERVER_PORT)
 
 
 def create_bot() -> Bot | None:
@@ -187,7 +185,7 @@ async def run_bot() -> None:
     engine = None
     runner = None
     bot = None
-    tuna_process = None
+    tunnel_process = None
 
     try:
         _lg.debug("Start main func.")
@@ -199,7 +197,7 @@ async def run_bot() -> None:
             _lg.critical("Failed to create a bot. Exiting.")
             return
 
-        base_webhook_url, tuna_process = resolve_webhook_base_url()
+        base_webhook_url, tunnel_process = resolve_webhook_base_url()
 
         engine, SessionLocal = await init_database()  # type: ignore
 
@@ -236,7 +234,6 @@ async def run_bot() -> None:
         site = web.TCPSite(runner, WEB_SERVER_HOST, WEB_SERVER_PORT)
         await site.start()
 
-        # Set webhook after the server is accepting traffic.
         await on_startup_set_webhook(bot, base_webhook_url)
 
         _lg.info(f"Web server started on {WEB_SERVER_HOST}:{WEB_SERVER_PORT}")
@@ -257,7 +254,7 @@ async def run_bot() -> None:
             bot,  # type: ignore
             storage,
             repos,
-            tuna_process,
+            tunnel_process,
         )
 
 

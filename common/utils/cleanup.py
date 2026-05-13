@@ -8,13 +8,13 @@ async def bot_cleanup(
     bot,
     storage,
     repos,
-    tuna_process,
+    tunnel_process,
 ):
     _lg.info("Starting cleanup:")
 
     # Cleanup
     # Stop web server
-    if runner:  # type: ignore
+    if runner:
         try:
             await runner.cleanup()
             _lg.info("Web server stopped.")
@@ -22,7 +22,7 @@ async def bot_cleanup(
             _lg.error(f"Error stopping web server: {e}.")
 
     # Delete webhook and close bot
-    if bot:  # type: ignore
+    if bot:
         try:
             await bot.delete_webhook(drop_pending_updates=False)
             _lg.info("Webhook deleted.")
@@ -43,7 +43,7 @@ async def bot_cleanup(
         _lg.error(f"Error closing storage: {e}.")
 
     # Close database
-    if repos:  # type: ignore
+    if repos:
         try:
             # Redis
             if repos["user_repo"].db_methods.cache:
@@ -56,19 +56,19 @@ async def bot_cleanup(
         except Exception as e:
             _lg.error(f"Error closing database: {e}.")
 
-    # Stop Tuna tunnel
-    if tuna_process:
+    # Stop Tunnel
+    if tunnel_process:
         try:
-            _lg.debug("Stopping Tuna tunnel...")
-            tuna_process.terminate()
-            tuna_process.wait(timeout=3)
-            _lg.info("Tuna tunnel stopped.")
+            _lg.debug("Stopping Tunnel...")
+            tunnel_process.terminate()
+            tunnel_process.wait(timeout=3)
+            _lg.info("Tunnel stopped.")
         except Exception:
             try:
-                tuna_process.kill()
-                _lg.warning("Tuna tunnel killed.")
+                tunnel_process.kill()
+                _lg.warning("Tunnel killed.")
             except Exception as e:
-                _lg.error(f"Error killing Tuna: {e}.")
+                _lg.error(f"Error killing Tunnel: {e}.")
 
     _lg.info("Cleanup completed!")
 

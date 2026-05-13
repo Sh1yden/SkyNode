@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
 from common.core import get_logger
-from bot.src.utils import RedisCache
+from common.utils import RedisCache
 
 # TypeVar для generic типизации
 T = TypeVar("T", bound=DeclarativeBase)

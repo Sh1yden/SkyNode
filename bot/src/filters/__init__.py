@@ -1,4 +1,5 @@
 __all__ = [
+    "MenuCallback",
     "DeviceCallback",
     "HelpCallback",
     "WeatherCallback",
@@ -6,6 +7,7 @@ __all__ = [
     "IsAdmin",
 ]
 
+from .MenuCallback import MenuCallback
 from .DeviceCallback import DeviceCallback
 from .HelpCallback import HelpCallback
 from .WeatherCallback import WeatherCallback

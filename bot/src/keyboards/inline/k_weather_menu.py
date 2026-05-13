@@ -4,7 +4,7 @@ from fluentogram import TranslatorRunner
 
 from common.database.repositories import UserRepository
 
-from bot.src.filters import WeatherCallback
+from bot.src.filters import WeatherCallback, MenuCallback
 
 
 async def get_btns_weather_menu(
@@ -86,7 +86,7 @@ async def get_btns_weather_menu(
     builder.row(
         InlineKeyboardButton(
             text=locale.button_weather_menu_back(),
-            callback_data=WeatherCallback(action="weather_get_back").pack(),
+            callback_data=MenuCallback(action="main_menu").pack(),
         ),
     )
 
