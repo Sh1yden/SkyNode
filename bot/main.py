@@ -23,8 +23,8 @@ from bot.src.middlewares import (
     TranslateMiddleware,
     AdminAccessMiddleware,
 )
-from bot.src.utils import settings, start_cloudflare, ensure_main_admin
-from common.utils import bot_cleanup
+from common.utils import settings, bot_cleanup, ensure_main_admin
+from bot.src.utils import start_cloudflare, setup_bot_command_pannel
 from bot.src.web.routes import setup_health_routes
 
 storage = MemoryStorage()
@@ -94,6 +94,8 @@ def create_dispatcher(repos) -> Dispatcher | None:
             return None
 
         dp = Dispatcher(storage=storage, t_hub=t_hub)
+
+        dp.workflow_data["t_hub"] = t_hub
 
         dp.include_router(main_router)
 
@@ -190,7 +192,7 @@ async def run_bot() -> None:
     try:
         _lg.debug("Start main func.")
         _lg.info(f"PROJECT STATUS is - {settings.PROJECT_STATUS}")
-        _lg.info(f"Webhook bind target: {WEB_SERVER_HOST}:{WEB_SERVER_PORT}")
+        _lg.debug(f"Webhook bind target: {WEB_SERVER_HOST}:{WEB_SERVER_PORT}")
 
         bot = create_bot()
         if bot is None:
@@ -210,6 +212,14 @@ async def run_bot() -> None:
         if dp is None:
             _lg.critical("Failed to create a dispatcher. Exiting.")
             return
+
+        await setup_bot_command_pannel(
+            bot,
+            dp,
+            await repos["admin_repo"].get_admin_ids(
+                0, 1000
+            ),  # ! Кол-во админов ставится вручную
+        )
 
         # Setup web application
         app = web.Application()

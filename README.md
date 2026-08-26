@@ -2,7 +2,7 @@
 
 # SkyNode
 
-Telegram-бот с функционалом погоды и системой вебхуков, построенный на aiogram 3.x с использованием Pydantic, SQLAlchemy, Docker, PosgreSQL, Redis и др.
+Telegram-бот с функционалом погоды и системой вебхуков, построенный на aiogram 4.x с использованием Pydantic, SQLAlchemy, Docker, PosgreSQL, Redis и др.
 
 ## Описание
 
@@ -191,10 +191,9 @@ docker compose -f 'docker-compose.yml' up -d --build
 
 - `/start` - Главное меню
 - `/help` - Список всех команд
-- `/weatherMenu` - Меню погоды
-- `/weatherNow` - Текущая погода
+- `/weather_menu` - Меню погоды
+- `/weather_now` - Текущая погода
 - `/location` - Управление местоположением
-- `/device` - Выбор устройства для геолокации
 
 ## База данных
 

@@ -5,15 +5,17 @@ from fluentogram import TranslatorRunner
 from bot.src.filters import MenuCallback
 
 
-def get_btns_exit_to_main_menu(locale: TranslatorRunner) -> InlineKeyboardMarkup:
-    """Кнопка на выход в главное меню."""
+def get_btns_admin_menu(
+    locale: TranslatorRunner, is_admin: bool = False
+) -> InlineKeyboardMarkup:
+    """Кнопки снизу сообщения после команды /admin_menu."""
 
     builder = InlineKeyboardBuilder()
 
     # 🔙 Назад
     builder.row(
         InlineKeyboardButton(
-            text=locale.button_weather_now_back(),
+            text=locale.button_weather_menu_back(),
             callback_data=MenuCallback(action="main_menu").pack(),
         ),
     )

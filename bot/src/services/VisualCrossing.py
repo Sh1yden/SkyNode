@@ -13,8 +13,9 @@ import asyncio
 from fluentogram import TranslatorRunner
 
 from common.core import get_logger
+from common.utils import settings
 from bot.src.services import get_cord_from_city
-from bot.src.utils import get_raw_link_api, req_data, settings
+from bot.src.utils import get_raw_link_api, req_data
 
 _lg = get_logger(__name__)
 

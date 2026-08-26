@@ -11,7 +11,7 @@ from typing import Type, Any, TypeVar
 
 from aiogram.types import User
 
-from sqlalchemy import inspect, exists, select, func
+from sqlalchemy import inspect, exists, select, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -26,10 +26,10 @@ class MethodsOfDatabase:
     """Universal methods for SQLite and PostgreSQL."""
 
     def __init__(
-        self,
-        session_factory: async_sessionmaker[AsyncSession],
-        base: Type[DeclarativeBase],
-        engine: AsyncEngine | None,
+            self,
+            session_factory: async_sessionmaker[AsyncSession],
+            base: Type[DeclarativeBase],
+            engine: AsyncEngine | None,
     ):
         """
         Initialize database methods
@@ -110,36 +110,59 @@ class MethodsOfDatabase:
 
     # ==== Admin Methods ====
     async def add_admin(self, model: Type[T], user_id: int) -> bool:
-        """"""
+        """Create new admin."""
         async with self._get_session() as session:
             try:
                 new_admin = model(user_id=user_id)
                 session.add(new_admin)
                 await session.commit()
                 return True
+
             except Exception as e:
                 await session.rollback()
                 self._lg.error(f"Failed to add admin {user_id}: {e}")
                 return False
 
     async def is_admin(self, model: Type[T], user_id: int) -> bool:
-        """"""
+        """Check if user is admin."""
         async with self._get_session() as session:
             try:
                 # Используем EXISTS для максимальной скорости
                 stmt = select(exists().where(model.user_id == user_id))  # type: ignore
                 result = await session.scalar(stmt)
                 return bool(result)
+
             except Exception as e:
                 self._lg.error(f"Error checking admin status: {e}")
                 return False
 
+    async def check_status_db(self) -> bool:
+        """Check status of database."""
+        async with self._get_session() as session:
+            try:
+                result = await session.scalar(text("SELECT 1"))
+                return bool(result)
+
+            except Exception as e:
+                self._lg.error(f"Error checking status of database: {e}")
+                return False
+
+    async def check_status_redis(self) -> bool:
+        """Check status of Redis."""
+        try:
+            result = await self.cache.ping()
+            return bool(result)
+
+        except Exception as e:
+            self._lg.error(f"Error checking status of Redis: {e}")
+            return False
+
     # ==== User Methods ====
     async def create_one_user(
-        self,
-        model: Type[T],
-        user: User | None = None,
-        **kwargs: Any,
+            self,
+            model: Type[T],
+            user: User | None = None,
+            **kwargs: Any,
     ) -> tuple[bool, str]:
         """
         Create one user in database
@@ -210,9 +233,9 @@ class MethodsOfDatabase:
                 return False, f"Error: {str(e)}."
 
     async def delete_one_user_by_id(
-        self,
-        model: Type[T],
-        user_id: int,
+            self,
+            model: Type[T],
+            user_id: int,
     ) -> tuple[bool, str]:
         """
         Delete one user by ID
@@ -254,10 +277,10 @@ class MethodsOfDatabase:
                 return False, f"Error: {str(e)}"
 
     async def update_one_user_by_id(
-        self,
-        model: Type[T],
-        user_id: int,
-        **kwargs: Any,
+            self,
+            model: Type[T],
+            user_id: int,
+            **kwargs: Any,
     ) -> tuple[bool, str, dict[str, Any] | None]:
         """
         Update one user by ID
@@ -420,10 +443,10 @@ class MethodsOfDatabase:
             return False
 
     async def find_by_one_user_id(
-        self,
-        model: Type[T],
-        user_id: int,
-        as_dict: bool = True,
+            self,
+            model: Type[T],
+            user_id: int,
+            as_dict: bool = True,
     ) -> T | dict[str, Any] | None:
         """
         Find one user by ID
@@ -473,12 +496,12 @@ class MethodsOfDatabase:
             return None
 
     async def find_users(  # TODO
-        self,
-        model: Type[T],
-        filters: dict[str, Any] | None = None,
-        limit: int = 100,
-        offset: int = 0,
-        as_dict: bool = True,
+            self,
+            model: Type[T],
+            filters: dict[str, Any] | None = None,
+            limit: int = 100,
+            offset: int = 0,
+            as_dict: bool = True,
     ) -> list[dict[str, Any]] | list[T]:
         """
         Find multiple users with filters
@@ -542,9 +565,9 @@ class MethodsOfDatabase:
                 return []
 
     async def count_users(
-        self,
-        model: Type[T],
-        filters: dict[str, Any] | None = None,
+            self,
+            model: Type[T],
+            filters: dict[str, Any] | None = None,
     ) -> int:
         """
         Count users with optional filters
@@ -586,9 +609,9 @@ class MethodsOfDatabase:
                 return 0
 
     async def create_many_users(  # TODO
-        self,
-        model: Type[T],
-        users_data: list[dict[str, Any]],
+            self,
+            model: Type[T],
+            users_data: list[dict[str, Any]],
     ) -> tuple[int, int, list[str]]:
         """
         Create multiple users at once (batch operation)
@@ -642,16 +665,18 @@ class MethodsOfDatabase:
                 return 0, len(users_data), [f"Batch error: {str(e)}"]
 
     async def get_all_user_ids(
-        self,
-        model: Type[T],
-        limit: int | None = 100,
-        offset: int | None = 0,
+            self,
+            model: Type[T],
+            limit: int | None = 100,
+            offset: int | None = 0,
     ) -> list[int]:
         """
         Get list of all user IDs
 
         Args:
             model: Model class
+            limit:
+            offset:
 
         Returns:
             list[int]: List of user IDs
@@ -671,10 +696,10 @@ class MethodsOfDatabase:
 
     # ==== Weather Methods ====
     async def create_weather_cache(
-        self,
-        model: Type[T],
-        weather_id: str,
-        **kwargs: Any,
+            self,
+            model: Type[T],
+            weather_id: str,
+            **kwargs: Any,
     ) -> tuple[bool, str]:
         """
         Create weather cache entry
@@ -724,9 +749,9 @@ class MethodsOfDatabase:
                 return False, f"Error: {str(e)}."
 
     async def delete_weather_cache_by_id(
-        self,
-        model: Type[T],
-        weather_id: str,
+            self,
+            model: Type[T],
+            weather_id: str,
     ) -> tuple[bool, str]:
         """
         Delete weather cache by ID
@@ -765,10 +790,10 @@ class MethodsOfDatabase:
                 return False, f"Error: {str(e)}"
 
     async def find_weather_cache_by_id(
-        self,
-        model: Type[T],
-        weather_id: str,
-        as_dict: bool = True,
+            self,
+            model: Type[T],
+            weather_id: str,
+            as_dict: bool = True,
     ) -> T | dict[str, Any] | None:
         """
         Find weather cache by ID
@@ -859,9 +884,9 @@ class MethodsOfDatabase:
 
 # Главная фабрика
 async def get_database_methods(
-    session_factory,
-    Base: Type[DeclarativeBase],
-    engine: AsyncEngine,
+        session_factory,
+        Base: Type[DeclarativeBase],
+        engine: AsyncEngine,
 ) -> MethodsOfDatabase:
     """
     Factory function to create and initialize MethodsOfDatabase
@@ -892,6 +917,7 @@ if __name__ == "__main__":
     from common.database.core import init_database
     from common.database.models import UserAllInfo
     from common.core import setup_logging
+
 
     async def main():
         setup_logging(level="DEBUG")
@@ -945,5 +971,6 @@ if __name__ == "__main__":
         await dbm.close()
 
         _lg.debug("Testing completed!")
+
 
     asyncio.run(main())

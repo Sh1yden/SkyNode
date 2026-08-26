@@ -13,7 +13,6 @@ class SettingsSchema(BaseSettings):
 
     # MAIN ADMIN ID
     MAIN_ADMIN_ID: int = Field(..., description="ID главного админа")
-
     # PROJECT SETTINGS
     PROJECT_STATUS: Literal["development", "product"] = Field(
         default="development", description="Статус проекта: development или product"

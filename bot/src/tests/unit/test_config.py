@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch
 
-from bot.src.utils import SettingsSchema
+from common.utils import SettingsSchema
 
 
 class TestSettingsSchema:
@@ -36,13 +36,13 @@ class TestSettingsSchema:
             if get_origin(annotation) is Literal:
                 # Для Literal проверяем что все значения - строки
                 literal_values = get_args(annotation)
-                assert all(isinstance(v, str) for v in literal_values), (
-                    f"Field {field_name} Literal values must be strings"
-                )
+                assert all(
+                    isinstance(v, str) for v in literal_values
+                ), f"Field {field_name} Literal values must be strings"
             else:
-                assert annotation == str, (
-                    f"Field {field_name} must be str or Literal[str, ...]"
-                )
+                assert (
+                    annotation == str
+                ), f"Field {field_name} must be str or Literal[str, ...]"
 
     def test_model_config_exists(self):
         """Проверка конфигурации модели"""
@@ -189,14 +189,14 @@ class TestSettingsInstance:
 
     def test_settings_instance_exists(self):
         """Глобальный экземпляр settings существует"""
-        from bot.src.utils.config import settings
+        from common.utils.config import settings
 
         assert settings is not None
         assert isinstance(settings, SettingsSchema)
 
     def test_settings_has_all_fields(self):
         """У settings есть все поля"""
-        from bot.src.utils.config import settings
+        from common.utils.config import settings
 
         assert hasattr(settings, "TELEGRAM_BOT_TOKEN")
         assert hasattr(settings, "TELEGRAM_WEBHOOK_SECRET")
@@ -208,7 +208,7 @@ class TestSettingsInstance:
 
     def test_settings_values_are_strings(self):
         """Все значения settings - строки"""
-        from bot.src.utils.config import settings
+        from common.utils.config import settings
 
         assert isinstance(settings.TELEGRAM_BOT_TOKEN, str)
         assert isinstance(settings.TELEGRAM_WEBHOOK_SECRET, str)

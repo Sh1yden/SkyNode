@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-from bot.src.utils import settings
+from common.utils import settings
 
 from common.database.core.database import Base
 from common.database.models.Admin import Admin

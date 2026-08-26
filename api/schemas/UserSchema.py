@@ -8,7 +8,7 @@ class BaseUserSchema(BaseModel):
     )
 
 
-class UserLocation(BaseModel):
+class UserLocation(BaseUserSchema):
     is_location: bool
     city: str | None
     latitude: str | None
@@ -34,7 +34,7 @@ class UserSchema(BaseUserSchema):
     longitude: str | None = None
 
 
-class UserCreate(BaseModel):
+class UserCreate(BaseUserSchema):
     user_id: int
     is_bot: bool
     first_name: str

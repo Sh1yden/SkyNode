@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from api.endpoints import router as main_router
 from api.lifespan import lifespan
 
-
 app = FastAPI(
     title="SkyNode",
     version="v0.5.0",

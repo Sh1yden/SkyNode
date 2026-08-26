@@ -1,5 +1,4 @@
 __all__ = [
-    "config",
     "save_load_delete",
     "auto_tunnels",
     "state_helpers",
@@ -8,11 +7,10 @@ __all__ = [
     "headers",
     "hours_image",
     "photo_cache",
-    "admin_init",
+    "command_pannel",
 ]
 
 from .save_load_delete import load_from_file, save_to_file
-from .config import SettingsSchema, settings
 from .api_helper import get_raw_link_api, req_data
 from .auto_tunnels import start_tuna, check_tuna_auth, save_tuna_token, start_cloudflare
 from .headers import Browser, Language, Platform
@@ -33,4 +31,4 @@ from .parser import get_soup, parse_data
 from .state_helpers import *
 from .hours_image import generate_hourly_forecast_image
 from .photo_cache import send_photo_save
-from .admin_init import ensure_main_admin
+from .command_pannel import setup_bot_command_pannel

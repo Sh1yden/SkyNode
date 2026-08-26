@@ -2,9 +2,8 @@ import pickle
 import redis.asyncio
 from typing import Any
 
-
 from common.core import get_logger
-from bot.src.utils import settings
+from common.utils import settings
 
 
 class RedisCache:
@@ -13,9 +12,9 @@ class RedisCache:
     """
 
     def __init__(
-        self,
-        db: int = 0,
-        decode_responses: bool = False,  # False для работы с bytes
+            self,
+            db: int = 0,
+            decode_responses: bool = False,  # False для работы с bytes
     ):
         self._lg = get_logger()
         self._lg.debug("Initializing AsyncRedisCache.")
@@ -55,6 +54,15 @@ class RedisCache:
                 self._lg.info("Redis connection closed")
             except Exception as e:
                 self._lg.error(f"Error closing Redis connection: {e}")
+
+    async def ping(self) -> bool:
+        """Check Redis connection."""
+        try:
+            await self.connection.ping()
+            return True
+        except Exception as e:
+            self._lg.error(f"Error checking Redis connection: {e}")
+            return False
 
     def serialize_data(self, data: Any) -> bytes | None:
         """Serialize data using pickle."""

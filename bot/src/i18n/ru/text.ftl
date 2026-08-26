@@ -5,6 +5,22 @@ message_service_error = ❌ Ошибка: { $error }
 message_service_error_not_user_enable = ❌ Ошибка: пользователь не идентифицирован.
 message_service_error_not_found_in_service = ❌ Ошибка: данные из внешних источников недоступны.
 
+# ? COMMAND PANEL Msgs
+message_command_panel_admin_menu = 🔐 Админ панель
+message_command_panel_admin_help = 📚🔐 Меню помощи. Все команды админа
+message_command_panel_start = ⚡️ Начать работу бота
+message_command_panel_help = 📚 Меню помощи. Все команды бота
+message_command_panel_weather_menu = ⛅️ Меню погоды
+message_command_panel_weather_now = ⌛ Погода сейчас
+message_command_panel_weather_hours = ""
+message_command_panel_weather_5d = ""
+message_command_panel_weather_day_night = ""
+message_command_panel_weather_rain = ""
+message_command_panel_weather_wind_pressure = ""
+message_command_panel_weather_settings = ""
+message_command_panel_weather_subscription = ""
+message_command_panel_weather_showset_location = 📍 Установить геопозицию, если установлена то показывает её
+message_command_panel_weather_change_location = 📍 Изменить геопозицию
 
 # ? BEFORE Start Msgs
 message_before_start =
@@ -21,13 +37,39 @@ message_before_start =
     Начать - /start
 
 
-# ? Admin Msgs
+# ? ADMIN Msgs
+# ? Admin MAIN MENU Msgs
 message_admin_main_menu =
     Приветствуем в нашей админ панели 🤝{ $admin_name }!
-    Количество пользователей бота: { $user_count }.
-    💼 Главное админ меню.
-    • Чтобы вывести все команды бота доступные только админам, напиши /admin_help.
-    • Все остальные функции доступны нажав кнопки снизу.
+
+    📊 Статистика:
+        • Юзеров в базе: { $user_count }.
+
+    🌐 Инфраструктура:
+        • База: { $db_status }.
+        • Redis: { $redis_status }.
+        • Туннель: { $tunnel_status }.
+
+    💼 Главное админ меню:
+    • Чтобы вывести список текстовых команд, напиши /admin_help.
+    • Функции управления доступны на кнопках ниже.
+
+# ? Admin STATUS Msgs
+message_admin_db_status_true = ✅ База данных онлайн
+message_admin_db_status_false = ❌ База данных не работает
+message_admin_redis_status_true = ✅ Redis онлайн
+message_admin_redis_status_false = ❌ Redis не работает
+message_admin_tunnel_status_true = ✅ Туннель онлайн
+message_admin_tunnel_status_false = ❌ Туннель не работает
+
+# ? Admin HELP Msgs
+message_admin_help =
+    📚 Меню помощи. Все команды бота, доступные админам:
+    • Вызов админ меню /admin_menu.
+    • Вызвать это меню /admin_help.
+    • Взять id фото с чата тг до команды /get_file_id.
+
+# ? Admin PHOTO ID Msgs
 message_admin_get_file_id = 📷 ID фотографии: { $file_id }
 
 
@@ -37,7 +79,7 @@ message_start_main_menu =
     !
     💼 Главное меню выбора функций бота.
     • Чтобы вывести все команды бота, напиши /help.
-    • Вызвать функцию погоды можно нажав кнопку ниже, либо же введя команду /weatherMenu.
+    • Вызвать функцию погоды можно нажав кнопку ниже, либо же введя команду /weather_menu.
 
 
 # ? Help Msgs
@@ -45,7 +87,7 @@ message_help =
     📚 Меню помощи. Все команды бота:
     • Начальное меню /start.
     • Вызвать это меню /help.
-    • Меню погоды /weatherMenu.
+    • Меню погоды /weather_menu.
 
 
 # ? Settings Msgs

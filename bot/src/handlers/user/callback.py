@@ -340,13 +340,14 @@ async def device_callback_handler(
             text=locale.message_location_send_on_phone(),
             reply_markup=get_btns_location(locale),
         )
+        await message.delete()
 
     if callback_data.action == "device_pc":
         # Установить состояние ожидания города
         await state.set_state(LocationState.waiting_for_city_pc)
 
-        # Сообщение ожидания названии локации
         await message.answer(text=locale.message_location_send_on_pc())
+        await message.delete()
 
 
 # LOCATION
@@ -363,11 +364,13 @@ async def handle_location_phone(
 
         if user is None:
             _lg.warning("User is None")
+            await message.delete()
             await message.answer(text=locale.message_service_error_not_user_enable())
             await clear_state(state)
             return
 
         if not location_phone:
+            await message.delete()
             await message.answer(text=locale.message_location_save_error())
             await clear_state(state)
             return
@@ -392,11 +395,13 @@ async def handle_location_phone(
                 latitude=lat,
                 longitude=lon,
             )
+            await message.delete()
             await message.answer(
                 text=msg_text,
                 reply_markup=get_btns_exit_to_weather_menu(locale),
             )
         else:
+            await message.delete()
             await message.answer(text=locale.message_location_save_error())
 
         await clear_state(state)
@@ -404,6 +409,7 @@ async def handle_location_phone(
     except Exception as e:
         _lg.error(f"Internal error: {e}.")
         await clear_state(state)
+        await message.delete()
         await message.answer(locale.message_service_error(error=e), show_alert=True)
 
 
@@ -420,6 +426,7 @@ async def handle_location_pc(
 
         if user is None:
             _lg.warning("User is None")
+            await message.delete()
             await message.answer(text=locale.message_service_error_not_user_enable())
             await clear_state(state)
             return
@@ -428,6 +435,7 @@ async def handle_location_pc(
         cancel_button = locale.button_location_cancel()
         if location_pc == cancel_button or location_pc == "отмена":
             await clear_state(state)
+            await message.delete()
             await message.answer(
                 text=locale.message_location_cancel(),
                 reply_markup=get_btns_exit_to_weather_menu(locale),
@@ -439,6 +447,7 @@ async def handle_location_pc(
 
         if not cord or "lat" not in cord or "lon" not in cord:
             _lg.warning(f"Failed to get coordinates for city: {location_pc}")
+            await message.delete()
             await message.answer(
                 "❌ Не удалось найти указанный город. "
                 "Попробуйте другое название."  # ! заглушка
@@ -467,11 +476,13 @@ async def handle_location_pc(
                 latitude=lat,
                 longitude=lon,
             )
+            await message.delete()
             await message.answer(
                 text=msg_text,
                 reply_markup=get_btns_exit_to_weather_menu(locale),
             )
         else:
+            await message.delete()
             await message.answer(
                 text=locale.message_location_save_error(),
                 show_alert=True,
@@ -483,6 +494,7 @@ async def handle_location_pc(
     except Exception as e:
         _lg.error(f"Internal error: {e}.")
         await clear_state(state)
+        await message.delete()
         await message.answer(locale.message_service_error(error=e), show_alert=True)
 
 
@@ -499,6 +511,7 @@ async def handle_cancel_location(
 ) -> None:
     """Handle location request cancellation"""
     await clear_state(state)
+    await message.delete()
     await message.answer(
         locale.message_location_cancel(),
         reply_markup=ReplyKeyboardRemove(),

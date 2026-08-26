@@ -214,6 +214,11 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Sublime Text
+.sublime
+pyrightconfig.json
+skynode-project.sublime-project
+
 # Continue
 .continue/
 

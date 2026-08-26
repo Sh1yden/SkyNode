@@ -11,9 +11,9 @@ from bot.src.keyboards import (
     get_btns_start,
     get_btns_weather_menu,
     get_btns_exit_to_weather_menu,
+    get_btns_exit_to_main_menu,
 )
 from bot.src.services import get_weather_now
-
 from bot.src.utils import send_photo_save
 
 router = Router()
@@ -30,8 +30,6 @@ async def command_start_handler(
 ) -> None:
     """Handle /start command and display welcome message"""
     try:
-        _lg.debug("Start handler activated.")
-
         user: User | None = message.from_user
 
         if user is None:
@@ -72,18 +70,18 @@ async def command_help_handler(message: Message, locale: TranslatorRunner):
     await message.answer_photo(
         photo=photo,
         caption=locale.message_help(),
-        reply_markup=get_btns_exit_to_weather_menu(locale),
+        reply_markup=get_btns_exit_to_main_menu(locale),
     )
 
 
-# обработка команды /weatherMenu
-@router.message(Command("weatherMenu"))
+# обработка команды /weather_menu
+@router.message(Command("weather_menu"))
 async def command_weather_handler(
     message: Message,
     locale: TranslatorRunner,
     repos: Dict[str, Any],
 ) -> None:
-    """Handle /weatherMenu command"""
+    """Handle /weather_menu command"""
     user: User | None = message.from_user
     user_repo = repos["user_repo"]
 
@@ -100,14 +98,14 @@ async def command_weather_handler(
     )
 
 
-# обработка команды /weatherNow
-@router.message(Command("weatherNow"))
+# обработка команды /weather_now
+@router.message(Command("weather_now"))
 async def command_weather_now_handler(
     message: Message,
     locale: TranslatorRunner,
     repos: Dict[str, Any],
 ):
-    """Handle /weatherNow command"""
+    """Handle /weather_now command"""
     user: User | None = message.from_user
     user_repo = repos["user_repo"]
     weather_repo = repos["weather_repo"]
@@ -144,14 +142,15 @@ async def command_weather_now_handler(
         )
 
 
-# обработка команды /location
-@router.message(Command("location"))
-async def request_location(
+# обработка команды /showset_location
+@router.message(Command("showset_location"))
+async def command_showset_location(
     message: Message,
     locale: TranslatorRunner,
     repos: Dict[str, Any],
 ) -> None:
-    """Handle /location command"""
+    """Handle /showset_location command"""
+
     user: User | None = message.from_user
     user_repo = repos["user_repo"]
 
@@ -182,10 +181,23 @@ async def request_location(
         )
 
 
-# обработка команды /device
-@router.message(Command("device"))
-async def command_device_handler(message: Message, locale: TranslatorRunner):
-    """Handle /device command"""
+# обработка команды /change_location
+@router.message(Command("change_location"))
+async def command_change_location(
+    message: Message,
+    locale: TranslatorRunner,
+    repos: Dict[str, Any],
+) -> None:
+    """Handle /change_location command"""
+
+    user: User | None = message.from_user
+    user_repo = repos["user_repo"]
+
+    if user is None:
+        _lg.warning("User is None")
+        await message.answer(locale.message_service_error_not_user_enable())
+        return
+
     await message.answer(
         text=locale.message_device_select(),
         reply_markup=get_btns_device(locale),

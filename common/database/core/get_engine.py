@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from bot.src.utils import settings
+from common.utils import settings
 
 
 async def get_engine(prj_status=settings.PROJECT_STATUS) -> AsyncEngine | None:

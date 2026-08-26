@@ -4,7 +4,7 @@ import subprocess
 import time
 from typing import Tuple
 
-from bot.src.utils import settings
+from common.utils import settings
 from common.core import get_logger
 
 _lg = get_logger()
@@ -84,9 +84,9 @@ def check_tuna_auth() -> bool:
                     _lg.debug(f"Auth check: level={level}, msg={msg[:50]}...")
 
                     if (
-                        "must be specified" in msg
-                        or "Unknown token" in msg
-                        or "AuthorizationRequired" in msg
+                            "must be specified" in msg
+                            or "Unknown token" in msg
+                            or "AuthorizationRequired" in msg
                     ):
                         _lg.debug("Found auth error - NOT authenticated")
                         is_authenticated = False
@@ -171,7 +171,7 @@ def start_tuna(port: int, timeout: int = 30) -> Tuple[str, subprocess.Popen]:
                     msg = data.get("msg", "")
 
                     if level == "fatal" and (
-                        "Unknown token" in msg or "AuthorizationRequired" in msg
+                            "Unknown token" in msg or "AuthorizationRequired" in msg
                     ):
                         _lg.error("Tuna authentication failed during tunnel startup")
                         _lg.error(f"Error: {msg}")
